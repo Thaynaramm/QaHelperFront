@@ -64,5 +64,37 @@ Não precisa instalar nem configurar nada.
 
 ---
 
-## 📦 Estrutura do projeto
+## 📦 Estrutura do projeto:
+/css
+/js
+/imgs
+dashboard.html
+dashboard.js
+style-dashboard.css
+
+
+> Pode ser hospedado em qualquer ambiente estático:  
+> **GitHub Pages, Netlify, Vercel, servidor local, intranet etc.**
+
+---
+
+## 🔓 Licença
+
+Este projeto é de uso **livre**.  
+Você pode usar, alterar, distribuir e mostrar no portfólio sem restrições.
+
+---
+
+## 👩‍💻 Autoria
+
+Desenvolvido por Thaynara Monteiro
+Analista de QA e apaixonada por qualidade e tecnologia.
+
+---
+
+## 🌐 Demonstração (opcional)
+Se você publicar no GitHub Pages, coloque o link aqui:
+link: https://thaynaramm.github.io/QaHelperFront/
+
+
 
