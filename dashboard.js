@@ -1,26 +1,23 @@
+// ==============================================
+// QA HELPER - DASHBOARD.JS (versão estável)
+// ==============================================
+
+
 // =========================
-// 1) AUTENTICAÇÃO (desativada)
+// 1) SAIR (apenas recarrega a página)
 // =========================
-// Antigamente verificava se o usuário estava logado.
-// Como não existe mais login real, deixamos desativado.
-/*
-const usuarioLogado = JSON.parse(sessionStorage.getItem("usuarioLogado"));
-if (!usuarioLogado) window.location.href = "index.html";
-*/
 const logoutBtn = document.getElementById("logoutBtn");
 if (logoutBtn) {
   logoutBtn.addEventListener("click", () => {
-    sessionStorage.removeItem("usuarioLogado");
-    window.location.href = "index.html";
+    location.reload(); // sem login, apenas recarrega
   });
 }
 
 
 
 // =========================
-// 2) TEMA LIGHT / DARK
+// 2) TEMA LIGHT/DARK
 // =========================
-// Salva o tema no navegador e alterna entre claro/escuro.
 const themeToggleBtn = document.getElementById("themeToggleBtn");
 const themeLabelSpan = document.getElementById("themeLabel");
 
@@ -36,11 +33,11 @@ aplicarTema(temaSalvo);
 
 if (themeToggleBtn) {
   themeToggleBtn.addEventListener("click", () => {
-    aplicarTema(
-      document.body.classList.contains("theme-light")
-        ? "theme-dark"
-        : "theme-light"
-    );
+    const atual = document.body.classList.contains("theme-light")
+      ? "theme-light"
+      : "theme-dark";
+
+    aplicarTema(atual === "theme-light" ? "theme-dark" : "theme-light");
   });
 }
 
@@ -49,7 +46,6 @@ if (themeToggleBtn) {
 // =========================
 // 3) GERADOR DE CENÁRIOS
 // =========================
-// Recebe a descrição do requisito e monta cenários em Gherkin.
 const inputRequisito = document.getElementById("inputRequisito");
 const outputCenarios = document.getElementById("outputCenarios");
 const btnGerarCenarios = document.getElementById("btnGerarCenarios");
@@ -58,7 +54,8 @@ const editorCenarios = document.getElementById("editorCenarios");
 
 function gerarCenariosGherkin(descricao) {
   if (!descricao.trim()) return "Informe uma descrição.";
-  return `Funcionalidade: ${descricao}
+
+  return `Funcionalidade: ${descricao.trim()}
 
 Cenário: Fluxo de sucesso
   Dado que o usuário acessa a funcionalidade
@@ -68,7 +65,12 @@ Cenário: Fluxo de sucesso
 Cenário: Dados inválidos
   Dado que o usuário acessa a funcionalidade
   Quando informa dados inválidos
-  Então o sistema exibe mensagem de erro`;
+  Então o sistema exibe mensagem de erro
+
+Cenário: Regra de negócio violada
+  Dado que existe uma regra de negócio
+  Quando o usuário tenta violar a regra
+  Então o sistema bloqueia a ação`;
 }
 
 if (btnGerarCenarios) {
@@ -79,10 +81,14 @@ if (btnGerarCenarios) {
 
 if (btnMoverParaEdicao) {
   btnMoverParaEdicao.addEventListener("click", () => {
-    editorCenarios.innerHTML = outputCenarios.value
+    const texto = outputCenarios.value;
+    if (!texto.trim()) return;
+
+    editorCenarios.innerHTML = texto
       .split("\n")
-      .map((l) => `<div>${l}</div>`)
+      .map((l) => (l ? `<div>${l}</div>` : "<br>"))
       .join("");
+
     editorCenarios.focus();
   });
 }
@@ -90,28 +96,36 @@ if (btnMoverParaEdicao) {
 
 
 // =========================
-// 4) HISTÓRICO
+// 4) HISTÓRICO DE ARQUIVOS
 // =========================
-// Mostra no painel os arquivos gerados (DOCX e XLSX),
-// permitindo BAIXAR e EXCLUIR.
 const historicoLista = document.getElementById("historicoLista");
 
 function adicionarAoHistorico(tipo, nomeArquivo, blob) {
   const url = URL.createObjectURL(blob);
 
+  const vazio = historicoLista.querySelector(".historico-item-vazio");
+  if (vazio) vazio.remove();
+
   const item = document.createElement("div");
   item.className = "historico-item";
+
   item.innerHTML = `
     <div class="historico-item-header">
-      <div>${nomeArquivo}</div>
-      <span>${tipo}</span>
+      <div class="historico-titulo">${nomeArquivo}</div>
+      <span class="historico-tipo">${tipo}</span>
     </div>
-    <button class="btn-download">Baixar</button>
-    <button class="btn-delete">Excluir</button>
+    <div class="historico-meta">
+      <span class="historico-data">Gerado em ${new Date().toLocaleString()}</span>
+      <div class="historico-actions">
+        <button class="btn btn-outline btn-download">Baixar</button>
+        <button class="btn btn-outline btn-delete">Excluir</button>
+      </div>
+    </div>
   `;
 
   historicoLista.appendChild(item);
 
+  // Botão baixar
   item.querySelector(".btn-download").onclick = () => {
     const a = document.createElement("a");
     a.href = url;
@@ -119,9 +133,21 @@ function adicionarAoHistorico(tipo, nomeArquivo, blob) {
     a.click();
   };
 
+  // Botão excluir
   item.querySelector(".btn-delete").onclick = () => {
-    item.remove();
     URL.revokeObjectURL(url);
+    item.remove();
+
+    if (!historicoLista.querySelector(".historico-item")) {
+      historicoLista.innerHTML = `
+        <div class="historico-item historico-item-vazio">
+          <div class="historico-titulo">Nenhum arquivo gerado ainda</div>
+          <div class="historico-meta">
+            <span class="historico-data">Gere cenários ou planejamento para preencher o histórico.</span>
+          </div>
+        </div>
+      `;
+    }
   };
 }
 
@@ -130,27 +156,37 @@ function adicionarAoHistorico(tipo, nomeArquivo, blob) {
 // =========================
 // 5) EXPORTAR DOCX
 // =========================
-// Gera documento .docx contendo cenários e a imagem do canvas.
 const btnGerarDOCX = document.getElementById("btnGerarDOCX");
+
 if (btnGerarDOCX) {
   btnGerarDOCX.addEventListener("click", async () => {
-    if (!editorCenarios.innerText.trim()) return alert("Editor vazio.");
+    if (!editorCenarios.innerText.trim())
+      return alert("O editor está vazio.");
 
-    const children = [ new docx.Paragraph(inputRequisito.value) ];
+    const children = [
+      new docx.Paragraph({
+        text: inputRequisito.value || "Documento QA",
+        heading: docx.HeadingLevel.TITLE,
+      }),
+    ];
 
-    editorCenarios.innerText.split("\n").forEach((l) => {
-      children.push(new docx.Paragraph(l));
+    editorCenarios.innerText.split("\n").forEach((linha) => {
+      children.push(new docx.Paragraph({ text: linha }));
     });
 
-    const doc = new docx.Document({ sections: [{ children }] });
+    const doc = new docx.Document({
+      sections: [{ children }],
+    });
+
     const blob = await docx.Packer.toBlob(doc);
+    const nomeArquivo = "documento-qa.docx";
 
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = "documento-qa.docx";
+    a.download = nomeArquivo;
     a.click();
 
-    adicionarAoHistorico("DOCX", "documento-qa.docx", blob);
+    adicionarAoHistorico("DOCX", nomeArquivo, blob);
   });
 }
 
@@ -159,16 +195,39 @@ if (btnGerarDOCX) {
 // =========================
 // 6) EXPORTAR XLSX
 // =========================
-// Gera planejamento padrão com ID, funcionalidade e objetivo.
 const btnGerarXlsx = document.getElementById("btnGerarXlsx");
+
 if (btnGerarXlsx) {
   btnGerarXlsx.addEventListener("click", () => {
-    if (!outputCenarios.value.trim()) return alert("Nada para gerar.");
+    let textoBase =
+      editorCenarios.innerText.trim() ||
+      outputCenarios.value.trim();
+
+    if (!textoBase)
+      return alert("Nenhum cenário disponível.");
 
     const dados = [
       ["ID", "Funcionalidade", "Objetivo", "Tipo", "Prioridade"],
-      ["CT-001", inputRequisito.value, "Fluxo de sucesso", "Funcional", "Alta"],
     ];
+
+    let funcionalidadeAtual = inputRequisito.value.trim() || "Funcionalidade";
+    let contador = 1;
+
+    textoBase.split("\n").forEach((linha) => {
+      if (linha.startsWith("Cenário")) {
+        const objetivo = linha.replace("Cenário:", "").trim();
+        dados.push([
+          "CT-" + String(contador++).padStart(3, "0"),
+          funcionalidadeAtual,
+          objetivo,
+          "Funcional",
+          "Alta",
+        ]);
+      }
+      if (linha.startsWith("Funcionalidade")) {
+        funcionalidadeAtual = linha.split(":")[1]?.trim() || funcionalidadeAtual;
+      }
+    });
 
     const ws = XLSX.utils.aoa_to_sheet(dados);
     const wb = XLSX.utils.book_new();
@@ -179,26 +238,26 @@ if (btnGerarXlsx) {
       { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }
     );
 
+    adicionarAoHistorico("XLSX", "planejamento-qa.xlsx", blob);
+
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
     a.download = "planejamento-qa.xlsx";
     a.click();
-
-    adicionarAoHistorico("XLSX", "planejamento-qa.xlsx", blob);
   });
 }
 
 
 
 // =========================
-// 7) EDITOR DE IMAGEM (canvas)
+// 7) EDITOR DE IMAGEM (Canvas)
 // =========================
-// Permite colar print, desenhar seta, retângulo, crop,
-// desfazer e copiar imagem final.
+
+// Canvas e contexto
 const canvas = document.getElementById("imageCanvas");
 const ctx = canvas.getContext("2d");
 
-// Estado dos desenhos e ferramentas
+// Ferramentas e estado
 let elementos = [];
 let undoStack = [];
 let redoStack = [];
@@ -208,11 +267,11 @@ let startX = 0;
 let startY = 0;
 let tempElement = null;
 
-// Ajuste inicial do tamanho
+// Tamanho inicial
 canvas.width = 900;
 canvas.height = 500;
 
-// Botões de ferramentas
+// Botões
 document.getElementById("btnToolArrow").onclick = () => (currentTool = "arrow");
 document.getElementById("btnToolRect").onclick = () => (currentTool = "rect");
 document.getElementById("btnToolCrop").onclick = () => (currentTool = "crop");
@@ -221,20 +280,24 @@ document.getElementById("btnToolNewImage").onclick = () => {
   redrawCanvas();
 };
 
-// Copiar imagem final
+// Copiar imagem
 document.getElementById("btnCopyImage").onclick = () => {
   canvas.toBlob((blob) => {
     navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
   });
 };
 
-// Função para redesenhar tudo
+// Redesenhar canvas
 function redrawCanvas() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   elementos.forEach((el) => desenharElemento(el));
 }
 
-// Colar imagem via CTRL+V
+
+
+// ------------------------------
+// COLAR IMAGEM (CTRL+V)
+// ------------------------------
 window.addEventListener("paste", (e) => {
   const item = [...e.clipboardData.items].find((i) =>
     i.type.startsWith("image/")
@@ -245,8 +308,13 @@ window.addEventListener("paste", (e) => {
   img.onload = () => {
     canvas.width = img.width;
     canvas.height = img.height;
-    elementos = [{ tipo: "imagem", img, x: 0, y: 0, w: img.width, h: img.height }];
+
+    elementos = [
+      { tipo: "imagem", img, x: 0, y: 0, w: img.width, h: img.height },
+    ];
+
     redrawCanvas();
   };
+
   img.src = URL.createObjectURL(item.getAsFile());
 });
