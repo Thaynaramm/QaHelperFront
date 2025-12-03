@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QA Helper - Recuperar Senha</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="app-header">
+    <div class="app-header-title">
+      <span class="app-logo-text">QA Helper</span>
+      <span class="app-logo-subtitle">Recuperar senha</span>
+    </div>
+  </header>
+
+  <!-- CONTAINER PRINCIPAL -->
+  <div class="login-container login-centered">
+    <section class="login-content login-card">
+      <h2 class="modal-title">Recuperar senha</h2>
+
+      <div class="logo-section logo-centered">
+        <img src="imagens/imagemCaveira.png" alt="Mascote QA Helper" class="logo-mascote">
+      </div>
+
+      <!-- FORMULÁRIO DE ESQUECEU A SENHA -->
+      <form id="forgotForm" class="login-form" novalidate>
+        <div class="form-group">
+          <label for="email">E-mail cadastrado</label>
+          <input type="email" id="email" name="email" placeholder="seuemail@gmail.com ou seuemail@hotmail.com" required>
+          <small id="erroEmail" class="erro"></small>
+        </div>
+
+        <button type="submit" class="login-button">Verificar e-mail</button>
+      </form>
+
+      <div class="login-links-column">
+        <a href="index.html" class="secondary-link">Voltar para o login</a>
+      </div>
+    </section>
+  </div>
+
+  <!-- MODAL -->
+  <div id="modal" class="modal">
+    <div class="modal-content">
+      <span id="closeModal" class="close">&times;</span>
+      <div id="modalMessage"></div>
+
+      <!-- Botão / link para redefinir senha -->
+      <a href="#" id="linkRedefinir" class="login-button" style="display:none; text-align:center; margin-top: 10px;">
+        Redefinir senha
+      </a>
+    </div>
+  </div>
+
+  <!-- SCRIPT DA PÁGINA FORGOT -->
+  <script>
+    // Elementos do DOM
+    const forgotForm = document.getElementById("forgotForm");
+    const emailInput = document.getElementById("email");
+    const erroEmail = document.getElementById("erroEmail");
+    const modal = document.getElementById("modal");
+    const modalMessage = document.getElementById("modalMessage");
+    const closeModal = document.getElementById("closeModal");
+    const linkRedefinir = document.getElementById("linkRedefinir"); // O link dentro do modal
+
+    // ⚠️ CORREÇÃO 1: Sincroniza com a chave 'usuarios' usada no script.js de login.
+    let usuariosCadastrados = JSON.parse(localStorage.getItem('usuarios')) || [];
+
+    // Variável para armazenar o email do usuário validado
+    let emailValidado = '';
+
+    function validarEmail(email) {
+        const regexEmail = /^[a-zA-Z0-9._%+-]+@(gmail\.com|hotmail\.com)$/;
+        return regexEmail.test(email);
+    }
+
+    // ⚠️ CORREÇÃO 2: Usa innerHTML para permitir o link no modal de erro/sucesso.
+    function abrirModal(titulo, conteudoHTML, mostrarLink = false) {
+        modalMessage.innerHTML = `
+            <h3 style="color: ${mostrarLink ? '#10b981' : '#f87171'}; margin-bottom: 15px;">${titulo}</h3>
+            ${conteudoHTML}
+        `;
+        linkRedefinir.style.display = mostrarLink ? 'block' : 'none';
+        modal.style.display = "block";
+    }
+
+    closeModal.addEventListener("click", () => {
+        modal.style.display = "none";
+    });
+
+    window.addEventListener("click", (e) => {
+        if(e.target === modal) modal.style.display = "none";
+    });
+
+    // Listener do Link de Redefinição
+    linkRedefinir.addEventListener("click", (event) => {
+        event.preventDefault();
+        if (emailValidado) {
+            // Redireciona para reset.html, passando o e-mail validado
+            window.location.href = "reset.html?email=" + encodeURIComponent(emailValidado);
+        }
+    });
+
+    forgotForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        erroEmail.textContent = "";
+
+        const email = emailInput.value.trim();
+        emailValidado = ''; // Limpa o email validado a cada tentativa
+
+        if(!email) {
+            erroEmail.textContent = "📧 Por favor, digite seu e-mail!";
+            return;
+        } else if(!validarEmail(email)) {
+            erroEmail.textContent = "📧 O e-mail precisa ser Gmail ou Hotmail!";
+            return;
+        }
+        
+        // Recarrega a lista do localStorage antes de buscar
+        usuariosCadastrados = JSON.parse(localStorage.getItem('usuarios')) || [];
+
+        const usuario = usuariosCadastrados.find(u => u.email === email);
+        if(!usuario) {
+            abrirModal(
+                "❌ E-mail não encontrado!", 
+                "<p>Usuário não cadastrado! Por favor, verifique o e-mail digitado.</p>",
+                false // Não mostra o link
+            );
+            return;
+        }
+
+        // SUCESSO: E-mail validado
+        emailValidado = email; // Armazena o e-mail para uso no link
+        
+        abrirModal(
+            "✅ E-mail Verificado!", 
+            "<p>Clique no botão abaixo para redefinir sua senha.</p>",
+            true // Mostra o link
+        );
+    });
+  </script>
+</body>
+</html>

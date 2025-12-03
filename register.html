@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Criar Usuário - QA Helper</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- HEADER COM O NOME DO SISTEMA -->
+  <header class="app-header">
+    <div class="app-header-title">
+      <span class="app-logo-text">QA Helper</span>
+      <span class="app-logo-subtitle">Seu assistente da Qualidade</span>
+    </div>
+  </header>
+
+  <!-- CONTAINER DO CADASTRO -->
+  <div class="login-container login-centered">
+    <section class="login-content login-card">
+
+      <!-- TÍTULO -->
+      <h2 class="modal-title">Criar Usuário</h2>
+
+      <!-- FORMULÁRIO -->
+      <form id="registerForm" class="login-form" novalidate>
+        <div class="form-group">
+          <label for="email">E-mail</label>
+          <input type="email" id="email" placeholder="Digite seu e-mail" required>
+          <small id="erroEmail" class="erro"></small>
+        </div>
+
+        <div class="form-group">
+          <label for="password">Senha</label>
+          <input type="password" id="password" placeholder="Crie uma senha" required>
+          <small id="erroSenha" class="erro"></small>
+        </div>
+
+        <div class="form-group">
+          <label for="confirm">Confirmar senha</label>
+          <input type="password" id="confirm" placeholder="Repita a senha" required>
+          <small id="erroConfirm" class="erro"></small>
+        </div>
+
+        <div id="mensagemServidor" class="erro"></div>
+
+        <button type="submit" class="login-button">Cadastrar</button>
+        <a href="index.html" class="secondary-link">Voltar ao login</a>
+      </form>
+
+    </section>
+  </div>
+
+  <!-- MODAL DE ALERTA -->
+  <div id="modal" class="modal">
+    <div class="modal-content">
+      <span id="closeModal" class="close">&times;</span>
+      <p id="modalMessage"></p>
+    </div>
+  </div>
+
+  <script src="js/register.js" defer></script>
+</body>
+</html>

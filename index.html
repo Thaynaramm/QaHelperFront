@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QA Helper - Login</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- HEADER COM O NOME DO SISTEMA (FORA DO MODAL) -->
+  <header class="app-header">
+    <div class="app-header-title">
+      <span class="app-logo-text">QA Helper</span>
+      <span class="app-logo-subtitle">Seu assistente da Qualidade</span>
+    </div>
+  </header>
+
+  <!-- MODAL DO LOGIN -->
+  <div class="login-container login-centered">
+    <section class="login-content login-card">
+
+      <!-- TÍTULO DENTRO DO MODAL -->
+      <h2 class="modal-title">QA Helper</h2>
+
+      <!-- MASCOTE DENTRO DO MODAL -->
+      <div class="logo-section logo-centered">
+        <img src="imagens/imagemCaveira.png" alt="Mascote QA Helper" class="logo-mascote">
+      </div>
+
+      <!-- FORMULÁRIO DE LOGIN -->
+      <form id="loginForm" class="login-form" novalidate>
+        <div class="form-group">
+          <label for="email">E-mail</label>
+          <input type="email" id="email" name="email" placeholder="seuemail@gmail.com ou seuemail@hotmail.com" required>
+          <small id="erroEmail" class="erro"></small>
+        </div>
+
+        <div class="form-group">
+          <label for="password">Senha</label>
+          <input type="password" id="password" name="password" placeholder="Mínimo 6 caracteres com letra e número" required>
+          <small id="erroSenha" class="erro"></small>
+        </div>
+
+        <div id="erroServidor" class="erro"></div>
+
+        <button type="submit" class="login-button">Entrar</button>
+      </form>
+
+      <!-- LINKS EMBAIXO DO FORMULÁRIO -->
+    <div class="login-links-column">
+    <a href="register.html" id="criarUsuario" class="secondary-link">Criar cadastro</a>
+    <a href="forgot.html" class="secondary-link">Esqueceu a senha?</a> </div>
+        
+        </div>
+
+  <!-- MODAL DE ALERTA -->
+  <div id="alertModal" class="modal">
+    <div class="modal-content">
+      <span id="closeModal" class="close">&times;</span>
+      <p id="modalMessage"></p>
+    </div>
+  </div>
+
+  <!-- SCRIPT DO LOGIN -->
+  <script src="js/script.js"></script>
+  
+</body>
+</html>

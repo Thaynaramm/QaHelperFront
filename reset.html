@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QA Helper - Redefinir Senha</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <header class="app-header">
+    <div class="app-header-title">
+      <span class="app-logo-text">QA Helper</span>
+      <span class="app-logo-subtitle">Redefinir senha</span>
+    </div>
+  </header>
+
+  <div class="login-container login-centered">
+    <section class="login-content login-card">
+      <h2 class="modal-title">Redefinir senha</h2>
+
+      <p id="emailInfo" style="margin-bottom: 15px; font-size: 0.95rem;"></p>
+
+      <form id="resetForm" class="login-form" novalidate>
+        <div class="form-group">
+          <label for="novaSenha">Nova senha</label>
+          <input type="password" id="novaSenha" name="novaSenha" placeholder="Digite a nova senha" required>
+          <small id="erroNovaSenha" class="erro"></small>
+        </div>
+
+        <div class="form-group">
+          <label for="confirmarSenha">Confirmar nova senha</label>
+          <input type="password" id="confirmarSenha" name="confirmarSenha" placeholder="Confirme a nova senha" required>
+          <small id="erroConfirmarSenha" class="erro"></small>
+        </div>
+
+        <button type="submit" class="login-button">Salvar nova senha</button>
+      </form>
+
+      <div class="login-links-column">
+        <a href="index.html" class="secondary-link">Voltar para o login</a>
+      </div>
+    </section>
+  </div>
+
+  <!-- MODAL -->
+  <div id="modal" class="modal">
+    <div class="modal-content">
+      <span id="closeModal" class="close">&times;</span>
+      <div id="modalMessage"></div>
+    </div>
+  </div>
+
+  <script>
+    // Pega o e-mail da URL (reset.html?email=...)
+    const params = new URLSearchParams(window.location.search);
+    const email = params.get("email");
+
+    const emailInfo = document.getElementById("emailInfo");
+    const resetForm = document.getElementById("resetForm");
+    const novaSenhaInput = document.getElementById("novaSenha");
+    const confirmarSenhaInput = document.getElementById("confirmarSenha");
+    const erroNovaSenha = document.getElementById("erroNovaSenha");
+    const erroConfirmarSenha = document.getElementById("erroConfirmarSenha");
+
+    const modal = document.getElementById("modal");
+    const modalMessage = document.getElementById("modalMessage");
+    const closeModal = document.getElementById("closeModal");
+
+    if (email) {
+      emailInfo.textContent = `Redefinindo a senha para: ${email}`;
+    } else {
+      emailInfo.textContent = "E-mail não informado. Volte para a tela de recuperação.";
+    }
+
+    function abrirModal(mensagem) {
+      modalMessage.innerHTML = `<p>${mensagem}</p>`;
+      modal.style.display = "block";
+    }
+
+    closeModal.addEventListener("click", () => {
+      modal.style.display = "none";
+    });
+
+    window.addEventListener("click", (e) => {
+      if (e.target === modal) modal.style.display = "none";
+    });
+
+    resetForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      erroNovaSenha.textContent = "";
+      erroConfirmarSenha.textContent = "";
+
+      const novaSenha = novaSenhaInput.value.trim();
+      const confirmarSenha = confirmarSenhaInput.value.trim();
+
+      if (!novaSenha || !confirmarSenha) {
+        if (!novaSenha) erroNovaSenha.textContent = "Digite a nova senha.";
+        if (!confirmarSenha) erroConfirmarSenha.textContent = "Confirme a nova senha.";
+        return;
+      }
+
+      if (novaSenha.length < 6) {
+        erroNovaSenha.textContent = "A senha deve ter pelo menos 6 caracteres.";
+        return;
+      }
+
+      if (novaSenha !== confirmarSenha) {
+        erroConfirmarSenha.textContent = "As senhas não coincidem.";
+        return;
+      }
+
+      // Atualiza a senha no localStorage
+      let usuarios = JSON.parse(localStorage.getItem("usuarios")) || [];
+      const index = usuarios.findIndex(u => u.email === email);
+
+      if (index === -1) {
+        abrirModal("Usuário não encontrado. Volte e tente novamente.");
+        return;
+      }
+
+      usuarios[index].password = novaSenha; // ou 'senha', conforme estiver no seu cadastro
+      localStorage.setItem("usuarios", JSON.stringify(usuarios));
+
+      abrirModal("Senha redefinida com sucesso! Você já pode fazer login com a nova senha.");
+    });
+  </script>
+</body>
+</html>

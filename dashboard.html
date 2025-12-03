@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <title>QA Helper - Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link rel="stylesheet" href="css/style-dashboard.css" />
+  </head>
+  <body class="theme-light">
+    <div class="dashboard-root">
+      <header class="dash-header">
+        <div class="dash-header-left">
+          <div class="logo-area">
+            <div class="logo-icon">QA</div>
+            <div class="logo-text">
+              <span class="logo-title">QA Helper</span>
+              <span class="logo-subtitle">Painel do analista de testes</span>
+            </div>
+          </div>
+        </div>
+        <div class="dash-header-right">
+          <button id="themeToggleBtn" class="btn btn-ghost">
+            Tema: <span id="themeLabel">Light</span>
+          </button>
+          <span id="userEmail" class="user-email">Olá, QA</span>
+          <button id="logoutBtn" class="btn btn-logout">Sair</button>
+        </div>
+      </header>
+
+      <main class="dash-main">
+        <section class="col-main">
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <h2 class="card-title">Gerador de cenários</h2>
+                <p class="card-subtitle">
+                  Descreva o requisito e gere cenários de teste.
+                </p>
+              </div>
+            </div>
+
+            <div class="card-body card-body-grid">
+              <div class="field-block">
+                <label for="requisitoInput" class="field-label">
+                  Descrição do requisito / user story
+                </label>
+                <textarea
+                  id="inputRequisito"
+                  class="field-textarea field-textarea-big"
+                  placeholder="Ex.: Como usuário autenticado, quero fazer login no sistema para acessar o painel principal..."
+                ></textarea>
+              </div>
+
+              <div class="field-block">
+                <label for="cenariosOutput" class="field-label">
+                  Cenários gerados (Gherkin)
+                </label>
+                <textarea
+                  id="outputCenarios"
+                  class="field-textarea field-textarea-big"
+                  placeholder="Os cenários gerados aparecerão aqui..."
+                  readonly
+                ></textarea>
+              </div>
+            </div>
+
+            <div class="card-footer">
+              <div class="card-footer-left">
+                <button id="btnGerarCenarios" class="btn btn-primary">
+                  Gerar cenários
+                </button>
+              </div>
+              <div class="card-footer-right">
+                <button id="btnMoverParaEdicao" class="btn btn-outline">
+                  Mover cenários para edição
+                </button>
+                <button id="btnGerarXlsx" class="btn btn-secondary">
+                  Gerar planejamento (.XLSX)
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <h2 class="card-title">Editor de cenários</h2>
+                <p class="card-subtitle">
+                  Ajuste textos, insira imagens e refine os cenários antes de documentar.
+                </p>
+              </div>
+            </div>
+            <div class="card-body">
+              <label class="field-label">
+                Edição dos cenários (texto + imagens coladas)
+              </label>
+              <div
+                id="editorCenarios"
+                class="field-editor editor-cenarios"
+                contenteditable="true"
+                spellcheck="false"
+              ></div>
+            </div>
+            <div class="card-footer card-footer-single">
+              <button id="btnGerarDOCX" class="btn btn-primary">
+                Gerar arquivo (.docx)
+              </button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <h2 class="card-title">Editor de imagens / Evidências</h2>
+                <p class="card-subtitle">
+                  Cole prints (CTRL+V) ou arraste imagens aqui. Use as ferramentas
+                  para destacar evidências de teste.
+                </p>
+              </div>
+            </div>
+
+            <div class="card-body">
+              <div class="image-toolbar">
+                <button id="btnToolCrop" class="btn-toolbar" type="button" title="Cortar">✂ Cortar</button>
+                <button id="btnToolArrow" class="btn-toolbar" type="button" title="Inserir setas">➤ Seta</button>
+                <button id="btnToolRect" class="btn-toolbar" type="button" title="Inserir retângulo">▭ Retângulo</button>
+                <button id="btnToolText" class="btn-toolbar" type="button" title="Inserir balão de texto">💬 Texto</button>
+
+                 <button id="btnToolNewImage" class="btn-toolbar" type="button" title="Nova imagem">🖼 Nova imagem</button>
+                 
+                <div class="toolbar-divider"></div>
+                <button id="btnToolUndo" class="btn-toolbar" type="button" title="Desfazer">↩ Desfazer</button>
+                <button id="btnToolRedo" class="btn-toolbar" type="button" title="Refazer">↪ Refazer</button>
+              </div>
+
+              <div
+                class="image-drop-area"
+                  id="imageDropArea"
+                   tabindex="0"
+>
+              <p class="image-drop-text">
+               Cole uma imagem aqui (CTRL+V) ou arraste um arquivo de imagem para esta área.
+             </p>
+               <div class="image-canvas-wrapper">
+               <canvas id="imageCanvas" class="image-canvas"></canvas>
+             </div>
+           </div>
+         </div>
+
+            <div class="card-footer card-footer-single">
+              <button id="btnCopyImage" class="btn btn-outline">Copiar imagem</button>
+            </div>
+          </div>
+        </section>
+
+        <aside class="col-sidebar">
+          <div class="card card-historico">
+            <div class="card-header">
+              <div>
+                <h2 class="card-title">Histórico</h2>
+                <p class="card-subtitle">Registros de planejamentos e arquivos gerados.</p>
+              </div>
+            </div>
+
+            <div class="card-body historico-body">
+              <div id="historicoLista" class="historico-lista">
+                <div class="historico-item historico-item-vazio">
+                  <div class="historico-titulo">Nenhum arquivo gerado ainda</div>
+                  <div class="historico-meta">
+                    <span class="historico-data">
+                      Gere cenários ou planejamento para preencher o histórico.
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </main>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
+    <script src="js/dashboard.js"></script>
+  </body>
+</html>
