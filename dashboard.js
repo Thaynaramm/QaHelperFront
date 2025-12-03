@@ -1,6 +1,7 @@
 // =========================
 // QA HELPER - DASHBOARD.JS
 // =========================
+
 // --------- THEME TOGGLE ---------
 const themeToggleBtn = document.getElementById("themeToggleBtn");
 const themeLabelSpan = document.getElementById("themeLabel");
@@ -301,6 +302,9 @@ let elementos = [];
 let undoStack = [];
 let redoStack = [];
 
+// flag para sabermos se o próximo CTRL+V no editor vem do canvas
+let isPastingFromCanvas = false;
+
 // estado da ferramenta e do desenho
 let currentTool = null; // "arrow" | "rect" | "crop" | null
 let isDrawing = false;
@@ -397,7 +401,7 @@ const btnRedo = document.getElementById("btnToolRedo");
 const btnNewImage = document.getElementById("btnToolNewImage");
 const btnCopyImage = document.getElementById("btnCopyImage");
 
-// Remove/ignora botão de TEXТО
+// Remove/ignora botão de TEXTO
 if (btnText) {
   btnText.style.display = "none";
 }
@@ -466,15 +470,26 @@ if (btnRedo) {
   });
 }
 
-// COPIAR IMAGEM
+// =========================
+// COPIAR IMAGEM DO CANVAS
+// =========================
 if (btnCopyImage) {
   btnCopyImage.addEventListener("click", () => {
     canvas.toBlob((blob) => {
       if (!blob) return;
+
+      const item = new ClipboardItem({ "image/png": blob });
+
       navigator.clipboard
-        .write([new ClipboardItem({ "image/png": blob })])
-        .then(() => alert("Imagem copiada!"))
-        .catch(() => alert("Não foi possível copiar a imagem."));
+        .write([item])
+        .then(() => {
+          isPastingFromCanvas = true;
+          alert("Imagem copiada! Vá ao Editor de Cenários e pressione CTRL+V.");
+        })
+        .catch((err) => {
+          console.error(err);
+          alert("Não foi possível copiar a imagem.");
+        });
     });
   });
 }
@@ -642,19 +657,9 @@ canvas.addEventListener("mouseleave", () => {
 });
 
 // =========================
-// COLAR IMAGEM (CTRL+V) – JANELA TODA
+// COLAR IMAGEM (CTRL+V) – FLUXO: COLAR -> EDITOR DE IMAGEM
 // =========================
 window.addEventListener("paste", (e) => {
-  const target = e.target;
-  const tag = target.tagName ? target.tagName.toLowerCase() : "";
-  if (
-    tag === "input" ||
-    tag === "textarea" ||
-    target.isContentEditable
-  ) {
-    return;
-  }
-
   const clipboardData = e.clipboardData || window.clipboardData;
   if (!clipboardData) return;
 
@@ -671,7 +676,30 @@ window.addEventListener("paste", (e) => {
 
   if (!imageItem) return;
 
+  const target = e.target;
+
+  // Se a imagem está sendo colada e:
+  // - o foco está dentro do editor de cenários
+  // - e veio do canvas (botão Copiar imagem)
+  // então deixamos o comportamento normal (colar no editor)
+  if (
+    editorCenarios &&
+    editorCenarios.contains(target) &&
+    isPastingFromCanvas
+  ) {
+    // zera a flag para não interferir em futuros prints
+    isPastingFromCanvas = false;
+    return; // deixa o browser colar a imagem no editor
+  }
+
+  // Qualquer outro caso de imagem colada:
+  // - print vindo do sistema
+  // - ou colagem em outro lugar
+  // -> vai para o canvas (editor de imagem)
+  isPastingFromCanvas = false; // segurança
+
   e.preventDefault();
+  e.stopPropagation();
 
   const file = imageItem.getAsFile();
   if (!file) return;
