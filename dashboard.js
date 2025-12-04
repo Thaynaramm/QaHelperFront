@@ -34,10 +34,43 @@ const btnGerarCenarios = document.getElementById("btnGerarCenarios");
 const btnMoverParaEdicao = document.getElementById("btnMoverParaEdicao");
 const editorCenarios = document.getElementById("editorCenarios");
 
+// ⚠️ AJUSTE SOLICITADO:
+// - Removido "Funcionalidade:"
+// - Criado 6 cenários mantendo o padrão original
 function gerarCenariosGherkin(descricao) {
   if (!descricao.trim()) return "Informe uma descrição de requisito.";
-  const tituloFunc = `Funcionalidade: ${descricao.trim()}`;
-  return `${tituloFunc}\n\nCenário: Fluxo de sucesso\n  Dado que o usuário acessa a funcionalidade\n  Quando ele realiza o fluxo principal corretamente\n  Então o sistema deve concluir a ação com sucesso\n\nCenário: Dados inválidos\n  Dado que o usuário acessa a funcionalidade\n  Quando ele informa dados inválidos\n  Então o sistema deve exibir mensagem de erro\n\nCenário: Regra de negócio violada\n  Dado que existe uma regra de negócio\n  Quando o usuário tenta violar a regra\n  Então o sistema bloqueia a ação`;
+
+  return `
+Cenário: Fluxo de sucesso
+  Dado que o usuário acessa a funcionalidade
+  Quando realiza o fluxo principal corretamente
+  Então o sistema deve concluir a ação com sucesso
+
+Cenário: Dados inválidos
+  Dado que o usuário acessa a funcionalidade
+  Quando informa dados inválidos
+  Então o sistema deve exibir mensagem de erro
+
+Cenário: Regra de negócio violada
+  Dado que existe uma regra de negócio
+  Quando o usuário tenta violar essa regra
+  Então o sistema deve bloquear a ação
+
+Cenário: Campos obrigatórios não preenchidos
+  Dado que o usuário acessa a funcionalidade
+  Quando deixa campos obrigatórios vazios
+  Então o sistema deve alertar sobre o preenchimento obrigatório
+
+Cenário: Tempo de resposta excedido
+  Dado que o sistema está processando uma requisição
+  Quando a resposta ultrapassa o tempo limite
+  Então o sistema deve exibir uma mensagem de indisponibilidade
+
+Cenário: Permissão insuficiente
+  Dado que o usuário não possui permissão para a ação
+  Quando tenta acessar a funcionalidade
+  Então o sistema deve negar o acesso
+`.trim();
 }
 
 if (btnGerarCenarios) {
@@ -119,7 +152,6 @@ if (btnGerarDOCX) {
       return alert("Editor vazio.");
     }
 
-    // 1) Parágrafo de título
     const children = [
       new docx.Paragraph({
         text: inputRequisito.value || "Documento QA",
@@ -127,22 +159,15 @@ if (btnGerarDOCX) {
       }),
     ];
 
-    // 2) Texto do editor (linha a linha)
     const linhas = editorCenarios.innerText.split("\n");
     linhas.forEach((linha) => {
-      children.push(
-        new docx.Paragraph({
-          text: linha,
-        })
-      );
+      children.push(new docx.Paragraph({ text: linha }));
     });
 
-    // 3) Se existir imagem no canvas, adiciona ao DOCX
     if (canvas && canvas.width && canvas.height) {
       try {
         const dataUrl = canvas.toDataURL("image/png");
         const base64 = dataUrl.split(",")[1];
-
         const byteCharacters = atob(base64);
         const byteNumbers = new Array(byteCharacters.length);
         for (let i = 0; i < byteCharacters.length; i++) {
@@ -150,7 +175,6 @@ if (btnGerarDOCX) {
         }
         const byteArray = new Uint8Array(byteNumbers);
 
-        // define um tamanho máximo pra não ficar gigante no DOCX
         const maxWidth = 600;
         const scale = Math.min(1, maxWidth / canvas.width);
         const imgWidth = canvas.width * scale;
@@ -158,32 +182,16 @@ if (btnGerarDOCX) {
 
         const imageRun = new docx.ImageRun({
           data: byteArray,
-          transformation: {
-            width: imgWidth,
-            height: imgHeight,
-          },
+          transformation: { width: imgWidth, height: imgHeight },
         });
 
-        children.push(
-          new docx.Paragraph({
-            children: [imageRun],
-          })
-        );
+        children.push(new docx.Paragraph({ children: [imageRun] }));
       } catch (e) {
         console.error("Erro ao adicionar imagem no DOCX:", e);
-        // se der erro, só segue com texto
       }
     }
 
-    // 4) Cria o documento com texto + imagem
-    const doc = new docx.Document({
-      sections: [
-        {
-          children,
-        },
-      ],
-    });
-
+    const doc = new docx.Document({ sections: [{ children }] });
     const blob = await docx.Packer.toBlob(doc);
     const nomeArquivo = "documento-qa.docx";
 
@@ -197,12 +205,11 @@ if (btnGerarDOCX) {
 }
 
 // =========================
-// EXPORTAR XLSX (modelo: ID Cenário, Funcionalidade, Objetivo do Teste, Tipo de Teste, Prioridade)
+// EXPORTAR XLSX
 // =========================
 const btnGerarXlsx = document.getElementById("btnGerarXlsx");
 if (btnGerarXlsx) {
   btnGerarXlsx.addEventListener("click", () => {
-    // 1) Descobrir de onde pegar os cenários (editor ou textarea)
     let textoBase = "";
     if (editorCenarios && editorCenarios.innerText.trim()) {
       textoBase = editorCenarios.innerText;
@@ -211,13 +218,10 @@ if (btnGerarXlsx) {
     }
 
     if (!textoBase.trim()) {
-      alert(
-        "Nenhum cenário encontrado. Gere os cenários antes de criar o planejamento."
-      );
+      alert("Nenhum cenário encontrado.");
       return;
     }
 
-    // 2) Cabeçalho do planejamento
     const dados = [
       [
         "ID Cenário",
@@ -228,7 +232,6 @@ if (btnGerarXlsx) {
       ],
     ];
 
-    // 3) Pegar a funcionalidade atual
     let funcionalidadeAtual =
       inputRequisito && inputRequisito.value.trim()
         ? inputRequisito.value.trim()
@@ -241,14 +244,6 @@ if (btnGerarXlsx) {
       const linha = linhaBruta.trim();
       if (!linha) return;
 
-      // Atualiza funcionalidade caso encontre "Funcionalidade: X"
-      if (/^Funcionalidade\s*:/i.test(linha)) {
-        const partes = linha.split(":");
-        if (partes[1]) funcionalidadeAtual = partes[1].trim();
-        return;
-      }
-
-      // Para cada "Cenário: ..." cria uma linha no planejamento
       if (/^Cenário\s*:/i.test(linha)) {
         const objetivo = linha.replace(/^Cenário\s*:\s*/i, "").trim() || linha;
 
@@ -256,28 +251,19 @@ if (btnGerarXlsx) {
         contadorCenario++;
 
         dados.push([
-          id, // ID Cenário
-          funcionalidadeAtual, // Funcionalidade
-          objetivo, // Objetivo do Teste
-          "Funcional", // Tipo de Teste (padrão)
-          "Alta", // Prioridade (padrão)
+          id,
+          funcionalidadeAtual,
+          objetivo,
+          "Funcional",
+          "Alta",
         ]);
       }
     });
 
-    if (dados.length === 1) {
-      alert(
-        "Não foi possível identificar cenários para gerar o planejamento."
-      );
-      return;
-    }
-
-    // 4) Criar planilha e workbook
     const ws = XLSX.utils.aoa_to_sheet(dados);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Planejamento QA");
 
-    // 5) Gerar arquivo e baixar
     const blob = new Blob(
       [XLSX.write(wb, { bookType: "xlsx", type: "array" })],
       {
@@ -292,7 +278,6 @@ if (btnGerarXlsx) {
     adicionarAoHistorico("XLSX", "planejamento-qa.xlsx", blob);
   });
 }
-
 // =========================
 // EDITOR DE IMAGEM
 // =========================
@@ -730,3 +715,4 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
