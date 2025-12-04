@@ -1,4 +1,4 @@
-O **QA Helper**
+ **QA Helper**
 
 ## 🎯 Objetivo
 
