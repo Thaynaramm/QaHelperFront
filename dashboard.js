@@ -51,7 +51,7 @@ Cenário: Dados inválidos
 Cenário: Regra de negócio violada
   Dado que existe uma regra de negócio
   Quando o usuário tenta violar essa regra
-  Então o sistema deve bloquear a ação
+  Então o sistema bloqueia a ação
 
 Cenário: Campos obrigatórios não preenchidos
   Dado que o usuário acessa a funcionalidade
@@ -60,12 +60,12 @@ Cenário: Campos obrigatórios não preenchidos
 
 Cenário: Tempo de resposta excedido
   Dado que o sistema está processando uma requisição
-  Quando a resposta ultrapassa o tempo limite
-  Então o sistema deve exibir uma mensagem de indisponibilidade
+  Quando o tempo limite é ultrapassado
+  Então o sistema deve exibir mensagem de indisponibilidade
 
 Cenário: Permissão insuficiente
   Dado que o usuário não possui permissão para a ação
-  Quando tenta acessar a funcionalidade
+  Quando tenta acessá-la
   Então o sistema deve negar o acesso
 `.trim();
 }
@@ -712,5 +712,6 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
 
 
