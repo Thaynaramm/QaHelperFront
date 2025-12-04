@@ -34,9 +34,6 @@ const btnGerarCenarios = document.getElementById("btnGerarCenarios");
 const btnMoverParaEdicao = document.getElementById("btnMoverParaEdicao");
 const editorCenarios = document.getElementById("editorCenarios");
 
-// ⚠️ AJUSTE SOLICITADO:
-// - Removido "Funcionalidade:"
-// - Criado 6 cenários mantendo o padrão original
 function gerarCenariosGherkin(descricao) {
   if (!descricao.trim()) return "Informe uma descrição de requisito.";
 
@@ -715,4 +712,5 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
 
