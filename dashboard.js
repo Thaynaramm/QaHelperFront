@@ -1,5 +1,5 @@
 // =========================
-// QA HELPER - DASHBOARD.JS
+// QA HELPER - DASHBOARD.JS (COMPLETO)
 // =========================
 
 // --------- THEME TOGGLE ---------
@@ -32,14 +32,11 @@ const inputRequisito = document.getElementById("inputRequisito");
 const outputCenarios = document.getElementById("outputCenarios");
 const btnGerarCenarios = document.getElementById("btnGerarCenarios");
 const btnLimparGerados = document.getElementById("btnLimparGerados");
-const btnLimparEditor = document.getElementById("btnLimparEditor");
 const btnMoverParaEdicao = document.getElementById("btnMoverParaEdicao");
+const btnLimparEditor = document.getElementById("btnLimparEditor");
 const editorCenarios = document.getElementById("editorCenarios");
 
-// =========================
-// CENÁRIOS FIXOS PADRÃO
-// =========================
-
+// CENÁRIOS FIXOS, SEM "FUNCIONALIDADE"
 function gerarCenariosGherkin(descricao) {
   if (!descricao.trim()) return "Informe uma descrição de requisito.";
 
@@ -76,31 +73,36 @@ Cenário: Permissão insuficiente
   `.trim();
 }
 
-// BOTÕES DO GERADOR
+// BOTÃO GERAR
 if (btnGerarCenarios) {
   btnGerarCenarios.addEventListener("click", () => {
     outputCenarios.value = gerarCenariosGherkin(inputRequisito.value);
   });
 }
 
+// BOTÃO LIMPAR CENÁRIOS GERADOS
 if (btnLimparGerados) {
   btnLimparGerados.addEventListener("click", () => {
     outputCenarios.value = "";
   });
 }
 
+// MOVER PARA EDIÇÃO
 if (btnMoverParaEdicao) {
   btnMoverParaEdicao.addEventListener("click", () => {
     const texto = outputCenarios.value;
     if (!texto.trim()) return;
+
     editorCenarios.innerHTML = texto
       .split("\n")
       .map((l) => (l ? `<div>${l}</div>` : "<br>"))
       .join("");
+
     editorCenarios.focus();
   });
 }
 
+// LIMPAR EDITOR
 if (btnLimparEditor) {
   btnLimparEditor.addEventListener("click", () => {
     editorCenarios.innerHTML = "";
@@ -108,13 +110,13 @@ if (btnLimparEditor) {
 }
 
 // =========================
-// HISTÓRICO E EXPORTAÇÃO
+// HISTÓRICO
 // =========================
 
 const historicoLista = document.getElementById("historicoLista");
 
 function adicionarAoHistorico(tipo, nomeArquivo, blob) {
-  if (!historicoLista || !blob) return;
+  if (!historicoLista) return;
 
   const vazio = historicoLista.querySelector(".historico-item-vazio");
   if (vazio) vazio.remove();
@@ -129,8 +131,10 @@ function adicionarAoHistorico(tipo, nomeArquivo, blob) {
       <div class="historico-titulo">${nomeArquivo}</div>
       <span class="historico-tipo">${tipo}</span>
     </div>
+
     <div class="historico-meta">
       <span class="historico-data">Gerado em ${new Date().toLocaleString()}</span>
+
       <div class="historico-actions">
         <button class="btn btn-outline btn-download">Baixar</button>
         <button class="btn btn-outline btn-delete">Excluir</button>
@@ -140,6 +144,7 @@ function adicionarAoHistorico(tipo, nomeArquivo, blob) {
 
   historicoLista.appendChild(item);
 
+  // BAIXAR
   item.querySelector(".btn-download").addEventListener("click", () => {
     const a = document.createElement("a");
     a.href = url;
@@ -147,9 +152,10 @@ function adicionarAoHistorico(tipo, nomeArquivo, blob) {
     a.click();
   });
 
+  // EXCLUIR
   item.querySelector(".btn-delete").addEventListener("click", () => {
-    URL.revokeObjectURL(url);
     item.remove();
+    URL.revokeObjectURL(url);
 
     if (!historicoLista.querySelector(".historico-item")) {
       historicoLista.innerHTML = `
@@ -158,22 +164,22 @@ function adicionarAoHistorico(tipo, nomeArquivo, blob) {
           <div class="historico-meta">
             <span class="historico-data">Gere cenários ou planejamento para preencher o histórico.</span>
           </div>
-        </div>
-      `;
+        </div>`;
     }
   });
 }
 
 // =========================
-// EXPORTAÇÃO DOCX
+// EXPORTAR DOCX
 // =========================
 
 const btnGerarDOCX = document.getElementById("btnGerarDOCX");
 
 if (btnGerarDOCX) {
   btnGerarDOCX.addEventListener("click", async () => {
-    if (!editorCenarios || !editorCenarios.innerText.trim()) {
-      return alert("Editor vazio.");
+    if (!editorCenarios.innerText.trim()) {
+      alert("Editor vazio.");
+      return;
     }
 
     const children = [
@@ -183,44 +189,46 @@ if (btnGerarDOCX) {
       }),
     ];
 
-    const linhas = editorCenarios.innerText.split("\n");
-    linhas.forEach((linha) => {
+    editorCenarios.innerText.split("\n").forEach((linha) => {
       children.push(new docx.Paragraph({ text: linha }));
     });
 
+    // Se existe imagem no canvas, anexa ao docx
     if (canvas && canvas.width && canvas.height) {
       try {
         const dataUrl = canvas.toDataURL("image/png");
         const base64 = dataUrl.split(",")[1];
 
-        const byteChars = atob(base64);
-        const byteNums = new Array(byteChars.length);
-        for (let i = 0; i < byteChars.length; i++) {
-          byteNums[i] = byteChars.charCodeAt(i);
-        }
-        const byteArray = new Uint8Array(byteNums);
+        const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
 
         const maxWidth = 600;
         const scale = Math.min(1, maxWidth / canvas.width);
-        const imgW = canvas.width * scale;
-        const imgH = canvas.height * scale;
 
-        const imageRun = new docx.ImageRun({
-          data: byteArray,
-          transformation: { width: imgW, height: imgH },
-        });
-
-        children.push(new docx.Paragraph({ children: [imageRun] }));
+        children.push(
+          new docx.Paragraph({
+            children: [
+              new docx.ImageRun({
+                data: bytes,
+                transformation: {
+                  width: canvas.width * scale,
+                  height: canvas.height * scale,
+                },
+              }),
+            ],
+          })
+        );
       } catch (e) {
-        console.error("Erro ao adicionar imagem no DOCX:", e);
+        console.error("Erro ao anexar imagem:", e);
       }
     }
 
-    const doc = new docx.Document({ sections: [{ children }] });
+    const doc = new docx.Document({
+      sections: [{ children }],
+    });
 
     const blob = await docx.Packer.toBlob(doc);
-    const nomeArquivo = "documento-qa.docx";
 
+    const nomeArquivo = "documento-qa.docx";
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
     a.download = nomeArquivo;
@@ -231,7 +239,79 @@ if (btnGerarDOCX) {
 }
 
 // =========================
-// EDITOR DE IMAGEM (COMPLETO)
+// EXPORTAR XLSX
+// =========================
+
+const btnGerarXlsx = document.getElementById("btnGerarXlsx");
+
+if (btnGerarXlsx) {
+  btnGerarXlsx.addEventListener("click", () => {
+    let textoBase = editorCenarios.innerText.trim()
+      ? editorCenarios.innerText
+      : outputCenarios.value;
+
+    if (!textoBase.trim()) {
+      alert("Nenhum cenário encontrado.");
+      return;
+    }
+
+    const dados = [
+      [
+        "ID Cenário",
+        "Funcionalidade",
+        "Objetivo do Teste",
+        "Tipo de Teste",
+        "Prioridade",
+      ],
+    ];
+
+    let funcionalidadeAtual =
+      inputRequisito.value.trim() || "Funcionalidade";
+
+    const linhas = textoBase.split("\n");
+
+    let contador = 1;
+
+    linhas.forEach((linhaBruta) => {
+      const linha = linhaBruta.trim();
+      if (!linha) return;
+
+      if (/^Cenário\s*:/i.test(linha)) {
+        const objetivo = linha.replace(/^Cenário\s*:\s*/i, "").trim();
+
+        const id = "CT-" + String(contador).padStart(3, "0");
+        contador++;
+
+        dados.push([
+          id,
+          funcionalidadeAtual,
+          objetivo,
+          "Funcional",
+          "Alta",
+        ]);
+      }
+    });
+
+    const ws = XLSX.utils.aoa_to_sheet(dados);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Planejamento QA");
+
+    const blob = new Blob(
+      [XLSX.write(wb, { bookType: "xlsx", type: "array" })],
+      { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }
+    );
+
+    adicionarAoHistorico("XLSX", "planejamento-qa.xlsx", blob);
+
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "planejamento-qa.xlsx";
+    a.click();
+  });
+}
+
+// =========================
+// EDITOR DE IMAGEM COMPLETO
 // =========================
 
 const canvas = document.getElementById("imageCanvas");
@@ -239,28 +319,21 @@ const ctx = canvas.getContext("2d");
 let elementos = [];
 let undoStack = [];
 let redoStack = [];
-
-// flag usada quando o botão “copiar imagem” for utilizado
 let isPastingFromCanvas = false;
-
-// estado do desenho
 let currentTool = null;
 let isDrawing = false;
 let startX = 0;
 let startY = 0;
 let tempElement = null;
 
-// tamanho padrão do canvas
-if (canvas) {
-  if (!canvas.width) canvas.width = 900;
-  if (!canvas.height) canvas.height = 500;
-}
+if (!canvas.width) canvas.width = 900;
+if (!canvas.height) canvas.height = 500;
 
 // fallback roundRect
 if (!CanvasRenderingContext2D.prototype.roundRect) {
   CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
     if (w < 2 * r) r = w / 2;
-    if (h < 2 * r) r = h / 2;
+    if (h < 2 * r) h = h / 2;
     this.beginPath();
     this.moveTo(x + r, y);
     this.arcTo(x + w, y, x + w, y + h, r);
@@ -272,10 +345,8 @@ if (!CanvasRenderingContext2D.prototype.roundRect) {
   };
 }
 
-// desenha cada elemento armazenado
+// desenha elemento
 function desenharElemento(el) {
-  if (!ctx) return;
-
   if (el.tipo === "imagem") {
     ctx.drawImage(el.img, el.x, el.y, el.w, el.h);
     return;
@@ -285,13 +356,11 @@ function desenharElemento(el) {
     ctx.setLineDash([]);
     ctx.strokeStyle = el.color || "red";
     ctx.lineWidth = el.lineWidth || 3;
-
     ctx.beginPath();
     ctx.moveTo(el.x1, el.y1);
     ctx.lineTo(el.x2, el.y2);
     ctx.stroke();
 
-    // ponta da seta
     const angle = Math.atan2(el.y2 - el.y1, el.x2 - el.x1);
     const size = 8;
 
@@ -306,7 +375,6 @@ function desenharElemento(el) {
       el.y2 - size * Math.sin(angle + Math.PI / 6)
     );
     ctx.closePath();
-    ctx.fillStyle = el.color || "red";
     ctx.fill();
     return;
   }
@@ -320,8 +388,8 @@ function desenharElemento(el) {
   }
 
   if (el.tipo === "crop") {
-    ctx.strokeStyle = el.color || "#00aa00";
-    ctx.lineWidth = el.lineWidth || 2;
+    ctx.strokeStyle = "#00aa00";
+    ctx.lineWidth = 2;
     ctx.setLineDash([6, 4]);
     ctx.strokeRect(el.x, el.y, el.w, el.h);
     ctx.setLineDash([]);
@@ -329,22 +397,17 @@ function desenharElemento(el) {
   }
 }
 
-// redesenha tudo no canvas
 function redrawCanvas() {
-  if (!ctx) return;
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   elementos.forEach(desenharElemento);
 }
 
-// salva estado para desfazer
 function salvarUndo() {
-  const clone = elementos.map((el) => ({ ...el }));
-  undoStack.push(clone);
+  undoStack.push(elementos.map((el) => ({ ...el })));
   redoStack = [];
 }
 
-// ferramentas
-const btnText = document.getElementById("btnToolText");
+// tools
 const btnArrow = document.getElementById("btnToolArrow");
 const btnRect = document.getElementById("btnToolRect");
 const btnCrop = document.getElementById("btnToolCrop");
@@ -353,70 +416,40 @@ const btnRedo = document.getElementById("btnToolRedo");
 const btnNewImage = document.getElementById("btnToolNewImage");
 const btnCopyImage = document.getElementById("btnCopyImage");
 
-if (btnText) btnText.style.display = "none";
+btnArrow.onclick = () => (currentTool = "arrow");
+btnRect.onclick = () => (currentTool = "rect");
+btnCrop.onclick = () => (currentTool = "crop");
 
-if (btnArrow) {
-  btnArrow.addEventListener("click", () => {
-    currentTool = "arrow";
-  });
-}
+btnNewImage.onclick = () => {
+  salvarUndo();
+  elementos = [];
+  redrawCanvas();
+};
 
-if (btnRect) {
-  btnRect.addEventListener("click", () => {
-    currentTool = "rect";
-  });
-}
+btnUndo.onclick = () => {
+  if (!undoStack.length) return;
+  redoStack.push(elementos.map((el) => ({ ...el })));
+  elementos = undoStack.pop();
+  redrawCanvas();
+};
 
-if (btnCrop) {
-  btnCrop.addEventListener("click", () => {
-    currentTool = "crop";
-  });
-}
+btnRedo.onclick = () => {
+  if (!redoStack.length) return;
+  undoStack.push(elementos.map((el) => ({ ...el })));
+  elementos = redoStack.pop();
+  redrawCanvas();
+};
 
-if (btnNewImage) {
-  btnNewImage.addEventListener("click", () => {
-    salvarUndo();
-    elementos = [];
-    redrawCanvas();
-  });
-}
-
-if (btnUndo) {
-  btnUndo.addEventListener("click", () => {
-    if (!undoStack.length) return;
-
-    redoStack.push(elementos.map((el) => ({ ...el })));
-    elementos = undoStack.pop();
-    redrawCanvas();
-  });
-}
-
-if (btnRedo) {
-  btnRedo.addEventListener("click", () => {
-    if (!redoStack.length) return;
-
-    undoStack.push(elementos.map((el) => ({ ...el })));
-    elementos = redoStack.pop();
-    redrawCanvas();
-  });
-}
-
-// copiar imagem do canvas
-if (btnCopyImage) {
-  btnCopyImage.addEventListener("click", () => {
-    canvas.toBlob((blob) => {
-      if (!blob) return;
-      const item = new ClipboardItem({ "image/png": blob });
-
-      navigator.clipboard.write([item]).then(() => {
-        isPastingFromCanvas = true;
-        alert("Imagem copiada! Vá ao editor de cenários e pressione CTRL+V.");
-      });
+btnCopyImage.onclick = () => {
+  canvas.toBlob((blob) => {
+    const item = new ClipboardItem({ "image/png": blob });
+    navigator.clipboard.write([item]).then(() => {
+      isPastingFromCanvas = true;
+      alert("Imagem copiada! Cole no editor de cenários (CTRL+V).");
     });
   });
-}
+};
 
-// posição do mouse
 function getMousePos(canvasEl, evt) {
   const rect = canvasEl.getBoundingClientRect();
   const scaleX = canvasEl.width / rect.width;
@@ -427,9 +460,7 @@ function getMousePos(canvasEl, evt) {
   };
 }
 
-// ----------------------------
-// DESENHO COM O MOUSE
-// ----------------------------
+// Mouse events
 canvas.addEventListener("mousedown", (e) => {
   if (!currentTool) return;
   const pos = getMousePos(canvas, e);
@@ -477,7 +508,6 @@ canvas.addEventListener("mouseup", () => {
   if (!isDrawing) return;
   isDrawing = false;
 
-  // se não for crop → adiciona elemento normalmente
   if (currentTool !== "crop") {
     salvarUndo();
     elementos.push(tempElement);
@@ -486,38 +516,18 @@ canvas.addEventListener("mouseup", () => {
     return;
   }
 
-  // -----------------------
-  // RECORTE REAL (CROP)
-  // -----------------------
-  const cropRect = {
-    x: tempElement.x,
-    y: tempElement.y,
-    w: tempElement.w,
-    h: tempElement.h,
-  };
+  // CROP REAL
+  const cropRect = tempElement;
 
-  let imgIndex = elementos.findIndex((el) => el.tipo === "imagem");
-  if (imgIndex === -1) {
-    tempElement = null;
-    redrawCanvas();
-    return;
-  }
-
-  const imgEl = elementos[imgIndex];
+  const imgEl = elementos.find((el) => el.tipo === "imagem");
+  if (!imgEl) return;
 
   const interX = Math.max(cropRect.x, imgEl.x);
   const interY = Math.max(cropRect.y, imgEl.y);
-  const interRight = Math.min(cropRect.x + cropRect.w, imgEl.x + imgEl.w);
-  const interBottom = Math.min(cropRect.y + cropRect.h, imgEl.y + imgEl.h);
+  const interW = Math.min(cropRect.x + cropRect.w, imgEl.x + imgEl.w) - interX;
+  const interH = Math.min(cropRect.y + cropRect.h, imgEl.y + imgEl.h) - interY;
 
-  const interW = interRight - interX;
-  const interH = interBottom - interY;
-
-  if (interW <= 0 || interH <= 0) {
-    tempElement = null;
-    redrawCanvas();
-    return;
-  }
+  if (interW <= 0 || interH <= 0) return;
 
   const scaleX = imgEl.img.width / imgEl.w;
   const scaleY = imgEl.img.height / imgEl.h;
@@ -531,13 +541,11 @@ canvas.addEventListener("mouseup", () => {
   tempCanvas.width = interW;
   tempCanvas.height = interH;
   const tctx = tempCanvas.getContext("2d");
-
   tctx.drawImage(imgEl.img, srcX, srcY, srcW, srcH, 0, 0, interW, interH);
 
   const newImg = new Image();
   newImg.onload = () => {
     salvarUndo();
-
     canvas.width = interW;
     canvas.height = interH;
 
@@ -545,7 +553,6 @@ canvas.addEventListener("mouseup", () => {
       { tipo: "imagem", img: newImg, x: 0, y: 0, w: interW, h: interH },
     ];
 
-    tempElement = null;
     redrawCanvas();
   };
 
@@ -560,44 +567,30 @@ canvas.addEventListener("mouseleave", () => {
   }
 });
 
-// ----------------------------
-// COLAR IMAGEM COM CTRL+V
-// ----------------------------
+// CTRL+V
 window.addEventListener("paste", (e) => {
   const items = e.clipboardData.items;
-  if (!items) return;
+  const imgItem = [...items].find((i) => i.type.startsWith("image/"));
+  if (!imgItem) return;
 
-  let imageItem = [...items].find((i) => i.type.startsWith("image/"));
-  if (!imageItem) return;
-
-  // se estiver colando no editor de cenários por causa do botão copiar imagem
-  if (
-    editorCenarios.contains(document.activeElement) &&
-    isPastingFromCanvas
-  ) {
+  if (editorCenarios.contains(document.activeElement) && isPastingFromCanvas) {
     isPastingFromCanvas = false;
     return;
   }
 
   e.preventDefault();
 
-  const file = imageItem.getAsFile();
+  const file = imgItem.getAsFile();
   const img = new Image();
 
   img.onload = () => {
     salvarUndo();
+
     canvas.width = img.width;
     canvas.height = img.height;
 
     elementos = [
-      {
-        tipo: "imagem",
-        img,
-        x: 0,
-        y: 0,
-        w: img.width,
-        h: img.height,
-      },
+      { tipo: "imagem", img, x: 0, y: 0, w: img.width, h: img.height },
     ];
 
     redrawCanvas();
@@ -605,5 +598,3 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
-
-
