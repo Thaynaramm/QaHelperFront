@@ -31,7 +31,7 @@ if (themeToggleBtn) {
 const inputRequisito = document.getElementById("inputRequisito");
 const outputCenarios = document.getElementById("outputCenarios");
 const btnGerarCenarios = document.getElementById("btnGerarCenarios");
-const btnLimparGerador = document.getElementById("btnLimparGerador");
+const btnLimparGerados = document.getElementById("btnLimparGerados");
 const btnLimparEditor = document.getElementById("btnLimparEditor");
 const btnMoverParaEdicao = document.getElementById("btnMoverParaEdicao");
 const editorCenarios = document.getElementById("editorCenarios");
@@ -83,8 +83,8 @@ if (btnGerarCenarios) {
   });
 }
 
-if (btnLimparGerador) {
-  btnLimparGerador.addEventListener("click", () => {
+if (btnLimparGerados) {
+  btnLimparGerados.addEventListener("click", () => {
     outputCenarios.value = "";
   });
 }
@@ -605,4 +605,5 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
 
