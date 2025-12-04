@@ -64,8 +64,7 @@ style-dashboard.css
 ## 👩‍💻 Autoria
 
 Desenvolvido por Thaynara Monteiro
-Analista de QA e apaixonada por qualidade e tecnologia.
-
+Analista de QA - Pleno
 ---
 
 ## 🌐 Demonstração (opcional)
