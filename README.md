@@ -1,5 +1,3 @@
-📘 QA Helper — Fluxo de Uso
-
 O **QA Helper** facilita a criação de cenários de teste com texto e imagens em um único fluxo simples.
 
 ## 🔄 Fluxo Completo
@@ -18,6 +16,8 @@ O **QA Helper** facilita a criação de cenários de teste com texto e imagens e
 
 * Com o conteúdo ajustado, tire um print normal da tela (externo).
 * Cole esse print **no Editor de Imagem**, logo abaixo do editor principal.
+
+
  4️⃣ **Editar a Imagem**
 
 * No Editor de Imagem, você pode marcar, desenhar, destacar ou ajustar o print.
