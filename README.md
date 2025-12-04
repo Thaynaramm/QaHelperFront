@@ -1,4 +1,9 @@
-O **QA Helper** facilita a criação de cenários de teste com texto e imagens em um único fluxo simples.
+O **QA Helper**
+
+## 🎯 Objetivo
+
+Centralizar todo o fluxo do QA em um único lugar: gerar requisitos → editar → capturar print → editar imagem → montar cenário → exportar.
+facilita a criação de cenários de teste com texto e imagens em um único fluxo simples.
 
 ## 🔄 Fluxo Completo
 
@@ -33,13 +38,6 @@ O **QA Helper** facilita a criação de cenários de teste com texto e imagens e
 
 * Quando o cenário estiver pronto, gere o documento (DOCX/XLSX).
 * O arquivo inclui texto + imagens editadas.
-
----
-
-## 🎯 Objetivo
-
-Centralizar todo o fluxo do QA em um único lugar: gerar requisitos → editar → capturar print → editar imagem → montar cenário → exportar.
-
 
 ## 🖥️ Tecnologias utilizadas
 
