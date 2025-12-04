@@ -229,3 +229,380 @@ if (btnGerarDOCX) {
     adicionarAoHistorico("DOCX", nomeArquivo, blob);
   });
 }
+
+// =========================
+// EDITOR DE IMAGEM (COMPLETO)
+// =========================
+
+const canvas = document.getElementById("imageCanvas");
+const ctx = canvas.getContext("2d");
+let elementos = [];
+let undoStack = [];
+let redoStack = [];
+
+// flag usada quando o botão “copiar imagem” for utilizado
+let isPastingFromCanvas = false;
+
+// estado do desenho
+let currentTool = null;
+let isDrawing = false;
+let startX = 0;
+let startY = 0;
+let tempElement = null;
+
+// tamanho padrão do canvas
+if (canvas) {
+  if (!canvas.width) canvas.width = 900;
+  if (!canvas.height) canvas.height = 500;
+}
+
+// fallback roundRect
+if (!CanvasRenderingContext2D.prototype.roundRect) {
+  CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
+    if (w < 2 * r) r = w / 2;
+    if (h < 2 * r) r = h / 2;
+    this.beginPath();
+    this.moveTo(x + r, y);
+    this.arcTo(x + w, y, x + w, y + h, r);
+    this.arcTo(x + w, y + h, x, y + h, r);
+    this.arcTo(x, y + h, x, y, r);
+    this.arcTo(x, y, x + w, y, r);
+    this.closePath();
+    return this;
+  };
+}
+
+// desenha cada elemento armazenado
+function desenharElemento(el) {
+  if (!ctx) return;
+
+  if (el.tipo === "imagem") {
+    ctx.drawImage(el.img, el.x, el.y, el.w, el.h);
+    return;
+  }
+
+  if (el.tipo === "seta") {
+    ctx.setLineDash([]);
+    ctx.strokeStyle = el.color || "red";
+    ctx.lineWidth = el.lineWidth || 3;
+
+    ctx.beginPath();
+    ctx.moveTo(el.x1, el.y1);
+    ctx.lineTo(el.x2, el.y2);
+    ctx.stroke();
+
+    // ponta da seta
+    const angle = Math.atan2(el.y2 - el.y1, el.x2 - el.x1);
+    const size = 8;
+
+    ctx.beginPath();
+    ctx.moveTo(el.x2, el.y2);
+    ctx.lineTo(
+      el.x2 - size * Math.cos(angle - Math.PI / 6),
+      el.y2 - size * Math.sin(angle - Math.PI / 6)
+    );
+    ctx.lineTo(
+      el.x2 - size * Math.cos(angle + Math.PI / 6),
+      el.y2 - size * Math.sin(angle + Math.PI / 6)
+    );
+    ctx.closePath();
+    ctx.fillStyle = el.color || "red";
+    ctx.fill();
+    return;
+  }
+
+  if (el.tipo === "retangulo") {
+    ctx.setLineDash([]);
+    ctx.strokeStyle = el.color || "blue";
+    ctx.lineWidth = el.lineWidth || 2;
+    ctx.strokeRect(el.x, el.y, el.w, el.h);
+    return;
+  }
+
+  if (el.tipo === "crop") {
+    ctx.strokeStyle = el.color || "#00aa00";
+    ctx.lineWidth = el.lineWidth || 2;
+    ctx.setLineDash([6, 4]);
+    ctx.strokeRect(el.x, el.y, el.w, el.h);
+    ctx.setLineDash([]);
+    return;
+  }
+}
+
+// redesenha tudo no canvas
+function redrawCanvas() {
+  if (!ctx) return;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  elementos.forEach(desenharElemento);
+}
+
+// salva estado para desfazer
+function salvarUndo() {
+  const clone = elementos.map((el) => ({ ...el }));
+  undoStack.push(clone);
+  redoStack = [];
+}
+
+// ferramentas
+const btnText = document.getElementById("btnToolText");
+const btnArrow = document.getElementById("btnToolArrow");
+const btnRect = document.getElementById("btnToolRect");
+const btnCrop = document.getElementById("btnToolCrop");
+const btnUndo = document.getElementById("btnToolUndo");
+const btnRedo = document.getElementById("btnToolRedo");
+const btnNewImage = document.getElementById("btnToolNewImage");
+const btnCopyImage = document.getElementById("btnCopyImage");
+
+if (btnText) btnText.style.display = "none";
+
+if (btnArrow) {
+  btnArrow.addEventListener("click", () => {
+    currentTool = "arrow";
+  });
+}
+
+if (btnRect) {
+  btnRect.addEventListener("click", () => {
+    currentTool = "rect";
+  });
+}
+
+if (btnCrop) {
+  btnCrop.addEventListener("click", () => {
+    currentTool = "crop";
+  });
+}
+
+if (btnNewImage) {
+  btnNewImage.addEventListener("click", () => {
+    salvarUndo();
+    elementos = [];
+    redrawCanvas();
+  });
+}
+
+if (btnUndo) {
+  btnUndo.addEventListener("click", () => {
+    if (!undoStack.length) return;
+
+    redoStack.push(elementos.map((el) => ({ ...el })));
+    elementos = undoStack.pop();
+    redrawCanvas();
+  });
+}
+
+if (btnRedo) {
+  btnRedo.addEventListener("click", () => {
+    if (!redoStack.length) return;
+
+    undoStack.push(elementos.map((el) => ({ ...el })));
+    elementos = redoStack.pop();
+    redrawCanvas();
+  });
+}
+
+// copiar imagem do canvas
+if (btnCopyImage) {
+  btnCopyImage.addEventListener("click", () => {
+    canvas.toBlob((blob) => {
+      if (!blob) return;
+      const item = new ClipboardItem({ "image/png": blob });
+
+      navigator.clipboard.write([item]).then(() => {
+        isPastingFromCanvas = true;
+        alert("Imagem copiada! Vá ao editor de cenários e pressione CTRL+V.");
+      });
+    });
+  });
+}
+
+// posição do mouse
+function getMousePos(canvasEl, evt) {
+  const rect = canvasEl.getBoundingClientRect();
+  const scaleX = canvasEl.width / rect.width;
+  const scaleY = canvasEl.height / rect.height;
+  return {
+    x: (evt.clientX - rect.left) * scaleX,
+    y: (evt.clientY - rect.top) * scaleY,
+  };
+}
+
+// ----------------------------
+// DESENHO COM O MOUSE
+// ----------------------------
+canvas.addEventListener("mousedown", (e) => {
+  if (!currentTool) return;
+  const pos = getMousePos(canvas, e);
+
+  isDrawing = true;
+  startX = pos.x;
+  startY = pos.y;
+  tempElement = null;
+});
+
+canvas.addEventListener("mousemove", (e) => {
+  if (!isDrawing) return;
+
+  const pos = getMousePos(canvas, e);
+  redrawCanvas();
+
+  if (currentTool === "arrow") {
+    tempElement = {
+      tipo: "seta",
+      x1: startX,
+      y1: startY,
+      x2: pos.x,
+      y2: pos.y,
+      color: "red",
+      lineWidth: 3,
+    };
+  }
+
+  if (currentTool === "rect" || currentTool === "crop") {
+    tempElement = {
+      tipo: currentTool === "crop" ? "crop" : "retangulo",
+      x: Math.min(startX, pos.x),
+      y: Math.min(startY, pos.y),
+      w: Math.abs(pos.x - startX),
+      h: Math.abs(pos.y - startY),
+      color: currentTool === "crop" ? "#00aa00" : "blue",
+      lineWidth: 2,
+    };
+  }
+
+  if (tempElement) desenharElemento(tempElement);
+});
+
+canvas.addEventListener("mouseup", () => {
+  if (!isDrawing) return;
+  isDrawing = false;
+
+  // se não for crop → adiciona elemento normalmente
+  if (currentTool !== "crop") {
+    salvarUndo();
+    elementos.push(tempElement);
+    tempElement = null;
+    redrawCanvas();
+    return;
+  }
+
+  // -----------------------
+  // RECORTE REAL (CROP)
+  // -----------------------
+  const cropRect = {
+    x: tempElement.x,
+    y: tempElement.y,
+    w: tempElement.w,
+    h: tempElement.h,
+  };
+
+  let imgIndex = elementos.findIndex((el) => el.tipo === "imagem");
+  if (imgIndex === -1) {
+    tempElement = null;
+    redrawCanvas();
+    return;
+  }
+
+  const imgEl = elementos[imgIndex];
+
+  const interX = Math.max(cropRect.x, imgEl.x);
+  const interY = Math.max(cropRect.y, imgEl.y);
+  const interRight = Math.min(cropRect.x + cropRect.w, imgEl.x + imgEl.w);
+  const interBottom = Math.min(cropRect.y + cropRect.h, imgEl.y + imgEl.h);
+
+  const interW = interRight - interX;
+  const interH = interBottom - interY;
+
+  if (interW <= 0 || interH <= 0) {
+    tempElement = null;
+    redrawCanvas();
+    return;
+  }
+
+  const scaleX = imgEl.img.width / imgEl.w;
+  const scaleY = imgEl.img.height / imgEl.h;
+
+  const srcX = (interX - imgEl.x) * scaleX;
+  const srcY = (interY - imgEl.y) * scaleY;
+  const srcW = interW * scaleX;
+  const srcH = interH * scaleY;
+
+  const tempCanvas = document.createElement("canvas");
+  tempCanvas.width = interW;
+  tempCanvas.height = interH;
+  const tctx = tempCanvas.getContext("2d");
+
+  tctx.drawImage(imgEl.img, srcX, srcY, srcW, srcH, 0, 0, interW, interH);
+
+  const newImg = new Image();
+  newImg.onload = () => {
+    salvarUndo();
+
+    canvas.width = interW;
+    canvas.height = interH;
+
+    elementos = [
+      { tipo: "imagem", img: newImg, x: 0, y: 0, w: interW, h: interH },
+    ];
+
+    tempElement = null;
+    redrawCanvas();
+  };
+
+  newImg.src = tempCanvas.toDataURL();
+});
+
+canvas.addEventListener("mouseleave", () => {
+  if (isDrawing) {
+    isDrawing = false;
+    tempElement = null;
+    redrawCanvas();
+  }
+});
+
+// ----------------------------
+// COLAR IMAGEM COM CTRL+V
+// ----------------------------
+window.addEventListener("paste", (e) => {
+  const items = e.clipboardData.items;
+  if (!items) return;
+
+  let imageItem = [...items].find((i) => i.type.startsWith("image/"));
+  if (!imageItem) return;
+
+  // se estiver colando no editor de cenários por causa do botão copiar imagem
+  if (
+    editorCenarios.contains(document.activeElement) &&
+    isPastingFromCanvas
+  ) {
+    isPastingFromCanvas = false;
+    return;
+  }
+
+  e.preventDefault();
+
+  const file = imageItem.getAsFile();
+  const img = new Image();
+
+  img.onload = () => {
+    salvarUndo();
+    canvas.width = img.width;
+    canvas.height = img.height;
+
+    elementos = [
+      {
+        tipo: "imagem",
+        img,
+        x: 0,
+        y: 0,
+        w: img.width,
+        h: img.height,
+      },
+    ];
+
+    redrawCanvas();
+  };
+
+  img.src = URL.createObjectURL(file);
+});
+
