@@ -487,3 +487,6 @@ body {
     grid-template-columns: 1fr;
   }
 }
+#logoutBtn {
+  display: none !important;
+}
