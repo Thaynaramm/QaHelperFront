@@ -277,10 +277,6 @@ if (btnGerarDOCX) {
 // EXPORTAR XLSX 
 // =========================
 
-// =========================
-// EXPORTAR XLSX – FORMATO COMPLETO IGUAL À SUA PLANILHA
-// =========================
-
 const btnGerarXlsx = document.getElementById("btnGerarXlsx");
 
 if (btnGerarXlsx) {
@@ -389,7 +385,37 @@ if (btnGerarXlsx) {
     for (let c = 0; c <= 5; c++) {
       aplicarEstilo(XLSX.utils.encode_cell({ r: 7, c }), estiloCorpo);
     }
+    //  APLICAR BORDAS EM TODAS AS CÉLULAS EXISTENTES
 
+const range = XLSX.utils.decode_range(ws["!ref"]);
+
+for (let r = range.s.r; r <= range.e.r; r++) {
+  for (let c = range.s.c; c <= range.e.c; c++) {
+
+    const addr = XLSX.utils.encode_cell({ r, c });
+    const cell = ws[addr];
+
+    if (!cell) continue; // ignora células inexistentes
+
+    // se a célula não tem estilo, cria
+    if (!cell.s) cell.s = {};
+
+    cell.s.border = {
+      top:    { style: "thin", color: { rgb: "000000" } },
+      bottom: { style: "thin", color: { rgb: "000000" } },
+      left:   { style: "thin", color: { rgb: "000000" } },
+      right:  { style: "thin", color: { rgb: "000000" } },
+    };
+  }
+}
+
+    // ---------- GERAR ARQUIVO ----------
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Planejamento");
+
+    XLSX.writeFile(wb, "planejamento_estilizado.xlsx");
+  });
+}
     // larguras
     ws["!cols"] = [
       { wch: 8 },
@@ -400,13 +426,6 @@ if (btnGerarXlsx) {
       { wch: 20 }
     ];
 
-    // ---------- GERAR ARQUIVO ----------
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Planejamento");
-
-    XLSX.writeFile(wb, "planejamento_estilizado.xlsx");
-  });
-}
 
 // =========================
 // EDITOR DE IMAGEM COMPLETO
@@ -696,6 +715,7 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
 
 
 
