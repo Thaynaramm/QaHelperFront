@@ -276,10 +276,8 @@ if (btnGerarDOCX) {
 // =========================
 // EXPORTAR XLSX 
 // =========================
-
 btnGerarXlsx.addEventListener("click", () => {
 
-  // Captura o texto (editor ou textarea)
   let textoBruto = editorCenarios.innerText.trim()
     ? editorCenarios.innerText
     : outputCenarios.value;
@@ -290,79 +288,82 @@ btnGerarXlsx.addEventListener("click", () => {
   }
 
   // -----------------------------------------
-// CADA CENÁRIO → VÁRIOS PASSOS (LINHAS SEPARADAS)
-// -----------------------------------------
+  // 1) SEPARAR CENÁRIOS EM BLOCOS
+  // -----------------------------------------
+  let blocosDeCenario = textoBruto
+    .split(/\n\s*\n/) // separa por linha vazia
+    .map(b => b.trim())
+    .filter(b => b.length > 0);
 
-let blocosDeCenario = textoBruto
-  .split(/\n\s*\n/)            // separa cenários por linha vazia
-  .map(b => b.trim())
-  .filter(b => b.length > 0);
+  // -----------------------------------------
+  // 2) TRANSFORMAR CADA CENÁRIO EM MÚLTIPLAS LINHAS
+  // -----------------------------------------
+  let passos = [];
+  let passoNumero = 1;
 
-// array final com todos os passos formatados
-let passos = [];
-let passoNumero = 1;
+  blocosDeCenario.forEach(cenarioCompleto => {
 
-blocosDeCenario.forEach(cenarioCompleto => {
+    // separar em linhas internas
+    let linhas = cenarioCompleto
+      .split("\n")
+      .map(l => l.trim())
+      .filter(l => l.length > 0);
 
-  // Quebra o cenário em linhas individuais
-  let linhas = cenarioCompleto
-    .split("\n")
-    .map(l => l.trim())
-    .filter(l => l.length > 0);
-
-  // A primeira linha vai com número de passo (ex: “1”)
-  passos.push([
-    passoNumero.toString(),
-    "https://sua-url.com",
-    linhas[0],                        // primeira linha do cenário
-    "Resultado esperado automático",
-    "OK",
-    "Analista QA"
-  ]);
-
-  // As próximas linhas ficam vazias na coluna "Passo"
-  for (let i = 1; i < linhas.length; i++) {
+    // PRIMEIRA LINHA DO CENÁRIO → tem nº do passo
     passos.push([
-      "",                             // passo em branco (continuação)
-      "https://sua-url.com",
-      linhas[i],                      // linhas subsequentes do cenário
-      "",
-      "",
-      ""
+      passoNumero.toString(),          // Passo
+      "https://sua-url.com",           // Caminho
+      linhas[0],                       // Descrição 1
+      "Resultado esperado automático", // Resultado esperado
+      "OK",                            // Resultado
+      "Analista QA"                    // Responsável
     ]);
-  }
 
-  passoNumero++;
-});
+    // RESTANTE DAS LINHAS → linha contínua do cenário
+    for (let i = 1; i < linhas.length; i++) {
+      passos.push([
+        "",                             // passo vazio (continuação)
+        "https://sua-url.com",
+        linhas[i],                      // cada linha individual
+        "",
+        "",
+        ""
+      ]);
+    }
+
+    passoNumero++;
+  });
 
   // -----------------------------------------
-  // 2) MONTAR MATRIZ PRINCIPAL
+  // 3) MONTAR MATRIZ COMPLETA DO EXCEL
   // -----------------------------------------
-  const linhas = [
+  const linhasXLSX = [
     ["", "Roteiro de Teste HML", "", "", "", ""],  // 0
-    ["História:", "1900422", "Quantidade de Steps:", passos.length, "", ""], // 1
+    ["História:", "1900422", "Quantidade de Steps:", blocosDeCenario.length, "", ""], // 1
     ["Cenário de teste:", "Execução de múltiplos cenários", "Status:", "Concluído", "", ""], // 2
     ["Pré Requisito:", "N/A", "", "", "", ""], // 3
     ["Data Execução:", new Date().toLocaleDateString(), "", "", "", ""], // 4
     [""], // 5
-    ["Passo", "Caminho da ação", "Descrição dos Passos", "Resultado Esperado", "Resultado", "Responsável"], // 6 → cabeçalho amarelo
-    ...passos, // ← todos os cenários convertidos em passos
-    [""], // linha vazia
-    ["", "Evidências", "", "", "", ""], // 9
+    ["Passo", "Caminho da ação", "Descrição dos Passos", "Resultado Esperado", "Resultado", "Responsável"], // 6
+    ...passos, // 7+
+    [""],
+    ["", "Evidências", "", "", "", ""]
   ];
 
-  const ws = XLSX.utils.aoa_to_sheet(linhas);
+  const ws = XLSX.utils.aoa_to_sheet(linhasXLSX);
 
   // -----------------------------------------
-  // 3) MERGES
+  // 4) APLICAR MERGES
   // -----------------------------------------
+  const linhaEvidencias = 7 + passos.length + 1;
+
   ws["!merges"] = [
     { s: { r: 0, c: 0 }, e: { r: 0, c: 5 } }, // título
-    { s: { r: 9 + passos.length, c: 0 }, e: { r: 9 + passos.length, c: 5 } } // evidências
+    { s: { r: linhaEvidencias, c: 0 }, e: { r: linhaEvidencias, c: 5 } } // evidências
   ];
 
   // -----------------------------------------
-  // 4) ESTILOS
+  // 5) ESTILOS
   // -----------------------------------------
   const azul = "4F81BD";
   const azulClaro = "DBE5F1";
@@ -386,7 +387,7 @@ blocosDeCenario.forEach(cenarioCompleto => {
     alignment: { horizontal: "center", vertical: "center", wrapText: true }
   };
 
-  const estiloCorpo = {
+  const estiloLinha = {
     alignment: { wrapText: true, vertical: "top" }
   };
 
@@ -395,17 +396,13 @@ blocosDeCenario.forEach(cenarioCompleto => {
     ws[celula].s = { ...ws[celula].s, ...estilo };
   }
 
-  // -----------------------------------------
-  // 5) APLICAR ESTILOS MANUAIS
-  // -----------------------------------------
-
+  // Título
   aplicarEstilo("A1", estiloTitulo);
 
-  // Linha de evidências (posição dinâmica)
-  const linhaEvidencias = 9 + passos.length;
+  // Evidências
   aplicarEstilo("A" + (linhaEvidencias + 1), estiloTitulo);
 
-  // Linhas 2–5 → azul claro
+  // Linhas 2 a 5 → azul claro
   for (let r = 1; r <= 4; r++) {
     for (let c = 0; c <= 5; c++) {
       aplicarEstilo(XLSX.utils.encode_cell({ r, c }), estiloInfo);
@@ -417,13 +414,13 @@ blocosDeCenario.forEach(cenarioCompleto => {
     aplicarEstilo(XLSX.utils.encode_cell({ r: 6, c }), estiloCabecalhoAmarelo);
   }
 
-  // Corpo (todas as linhas de passos)
-  let corpoInicio = 7;
-  let corpoFim = 7 + passos.length - 1;
+  // Corpo (todas as linhas)
+  let inicio = 7;
+  let fim = 7 + passos.length - 1;
 
-  for (let r = corpoInicio; r <= corpoFim; r++) {
+  for (let r = inicio; r <= fim; r++) {
     for (let c = 0; c <= 5; c++) {
-      aplicarEstilo(XLSX.utils.encode_cell({ r, c }), estiloCorpo);
+      aplicarEstilo(XLSX.utils.encode_cell({ r, c }), estiloLinha);
     }
   }
 
@@ -431,6 +428,7 @@ blocosDeCenario.forEach(cenarioCompleto => {
   // 6) BORDAS EM TODA A PLANILHA
   // -----------------------------------------
   const range = XLSX.utils.decode_range(ws["!ref"]);
+
   for (let r = range.s.r; r <= range.e.r; r++) {
     for (let c = range.s.c; c <= range.e.c; c++) {
 
@@ -440,10 +438,10 @@ blocosDeCenario.forEach(cenarioCompleto => {
       if (!ws[addr].s) ws[addr].s = {};
 
       ws[addr].s.border = {
-        top:    { style: "thin", color: { rgb: "000000" } },
-        bottom: { style: "thin", color: { rgb: "000000" } },
-        left:   { style: "thin", color: { rgb: "000000" } },
-        right:  { style: "thin", color: { rgb: "000000" } }
+        top: { style: "thin" },
+        bottom: { style: "thin" },
+        left: { style: "thin" },
+        right: { style: "thin" }
       };
     }
   }
@@ -452,11 +450,11 @@ blocosDeCenario.forEach(cenarioCompleto => {
   // 7) LARGURA DAS COLUNAS
   // -----------------------------------------
   ws["!cols"] = [
-    { wch: 18 }, // Passo
+    { wch: 12 }, // Passo
     { wch: 40 }, // Caminho
-    { wch: 90 }, // Descrição
-    { wch: 35 }, // Resultado Esperado
-    { wch: 15 }, // Resultado
+    { wch: 80 }, // Descrição (muito larga)
+    { wch: 35 }, // Resultado esperado
+    { wch: 10 }, // Resultado
     { wch: 25 }  // Responsável
   ];
 
@@ -467,8 +465,8 @@ blocosDeCenario.forEach(cenarioCompleto => {
   XLSX.utils.book_append_sheet(wb, ws, "Planejamento");
 
   XLSX.writeFile(wb, "planejamento_estilizado.xlsx");
-
 });
+
 
 // =========================
 // EDITOR DE IMAGEM COMPLETO
@@ -758,6 +756,7 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
 
 
 
