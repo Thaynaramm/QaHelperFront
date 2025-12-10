@@ -288,29 +288,29 @@ btnGerarXlsx.addEventListener("click", () => {
     return;
   }
 
-  // MATRIZ
+  // MATRIZ COMPLETA
   const linhas = [
-    ["", "Roteiro de Teste HML", "", "", "", ""], 
-    ["História:", "1900422", "Quantidade de Steps:", "1", "", ""],
-    ["Cenário de teste:", "CT01: Verificar status ofertas", "Status:", "Concluído", "", ""],
-    ["Pré Requisito:", "N/A", "", "", "", ""],
-    ["Data Execução:", new Date().toLocaleDateString(), "", "", "", ""],
-    [""],
-    ["Passo", "Caminho da ação", "Descrição dos Passos", "Resultado Esperado", "Resultado", "Responsável"],
-    ["1", "https://sua-url.com", textoBase, "Resultado esperado automático", "OK", "Analista QA"],
-    [""],
-    ["", "Evidências", "", "", "", ""]
+    ["", "Roteiro de Teste HML", "", "", "", ""],  // 0
+    ["História:", "1900422", "Quantidade de Steps:", "1", "", ""], // 1
+    ["Cenário de teste:", "CT01: Verificar status ofertas", "Status:", "Concluído", "", ""], // 2
+    ["Pré Requisito:", "N/A", "", "", "", ""], // 3
+    ["Data Execução:", new Date().toLocaleDateString(), "", "", "", ""], // 4
+    [""], // 5
+    ["Passo", "Caminho da ação", "Descrição dos Passos", "Resultado Esperado", "Resultado", "Responsável"], // 6
+    ["1", "https://sua-url.com", textoBase, "Resultado esperado automático", "OK", "Analista QA"], // 7
+    [""], // 8
+    ["", "Evidências", "", "", "", ""], // 9
   ];
 
   const ws = XLSX.utils.aoa_to_sheet(linhas);
 
-  // MERGES
+  // ---------- MERGES ----------
   ws["!merges"] = [
-    { s: { r: 0, c: 0 }, e: { r: 0, c: 5 } },
-    { s: { r: 9, c: 0 }, e: { r: 9, c: 5 } }
+    { s: { r: 0, c: 0 }, e: { r: 0, c: 5 } }, // título
+    { s: { r: 9, c: 0 }, e: { r: 9, c: 5 } }  // evidências
   ];
 
-  // ESTILOS
+  // ---------- ESTILOS ----------
   const azul = "4F81BD";
   const azulClaro = "DBE5F1";
 
@@ -336,7 +336,6 @@ btnGerarXlsx.addEventListener("click", () => {
     alignment: { wrapText: true, vertical: "top" }
   };
 
-  // Função para aplicar estilo
   function aplicarEstilo(celula, estilo) {
     if (!ws[celula]) return;
     ws[celula].s = { ...ws[celula].s, ...estilo };
@@ -344,37 +343,33 @@ btnGerarXlsx.addEventListener("click", () => {
 
   // TÍTULO
   aplicarEstilo("A1", estiloTitulo);
+  aplicarEstilo("A10", estiloTitulo); // evidências
 
-  // EVIDÊNCIAS
-  aplicarEstilo("A10", estiloTitulo);
-
-  // INFO (linhas 1–4)
+  // INFO (linhas 1 a 4)
   for (let r = 1; r <= 4; r++) {
     for (let c = 0; c <= 5; c++) {
-      const addr = XLSX.utils.encode_cell({ r, c });
-      aplicarEstilo(addr, estiloInfo);
+      aplicarEstilo(XLSX.utils.encode_cell({ r, c }), estiloInfo);
     }
   }
 
-  // CABEÇALHO TABELA (linha 7 = índice 6)
+  // CABEÇALHO TABELA
   for (let c = 0; c <= 5; c++) {
-    const addr = XLSX.utils.encode_cell({ r: 6, c });
-    aplicarEstilo(addr, estiloCabecalho);
+    aplicarEstilo(XLSX.utils.encode_cell({ r: 6, c }), estiloCabecalho);
   }
 
-  // CORPO (linha 8 = índice 7)
+  // CORPO
   for (let c = 0; c <= 5; c++) {
-    const addr = XLSX.utils.encode_cell({ r: 7, c });
-    aplicarEstilo(addr, estiloCorpo);
+    aplicarEstilo(XLSX.utils.encode_cell({ r: 7, c }), estiloCorpo);
   }
 
-  // QUEBRA DE TEXTO NA COLUNA C
-  aplicarEstilo("C8", { alignment: { wrapText: true, vertical: "top" } });
+  // COLUNA C COM WRAPTEXT
+  aplicarEstilo("C8", estiloCorpo);
 
-  // BORDAS (FEITO DEPOIS – NÃO REMOVE ESTILO)
+  // ---------- BORDAS (FEITO *ANTES* DO AJUSTE DE COLUNAS) ----------
   const range = XLSX.utils.decode_range(ws["!ref"]);
   for (let r = range.s.r; r <= range.e.r; r++) {
     for (let c = range.s.c; c <= range.e.c; c++) {
+
       const addr = XLSX.utils.encode_cell({ r, c });
       if (!ws[addr]) continue;
 
@@ -389,14 +384,14 @@ btnGerarXlsx.addEventListener("click", () => {
     }
   }
 
-  // LARGURA DAS COLUNAS (APLICADO POR ÚLTIMO)
+  // ---------- LARGURA DAS COLUNAS (APLICADO POR ÚLTIMO) ----------
   ws["!cols"] = [
-    { wch: 18 },  // A maior
-    { wch: 45 },  // B
-    { wch: 70 },  // C
-    { wch: 35 },  // D
-    { wch: 12 },  // E
-    { wch: 22 }   // F
+    { wch: 18 }, // A
+    { wch: 45 }, // B
+    { wch: 70 }, // C
+    { wch: 35 }, // D
+    { wch: 12 }, // E
+    { wch: 22 }  // F
   ];
 
   const wb = XLSX.utils.book_new();
@@ -693,6 +688,7 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
 
 
 
