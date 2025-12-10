@@ -288,15 +288,17 @@ btnGerarXlsx.addEventListener("click", () => {
     return;
   }
 
-  // MATRIZ COMPLETA
+  // -----------------------------
+  // MATRIZ COMPLETA DO ARQUIVO
+  // -----------------------------
   const linhas = [
-    ["", "Roteiro de Teste HML", "", "", "", ""],  // 0
-    ["História:", "1900422", "Quantidade de Steps:", "1", "", ""], // 1
+    ["", "Roteiro de Teste HML", "", "", "", ""],  // 0 (Título)
+    ["História:", "1900422", "Quantidade de Steps:", "1", "", ""],  // 1
     ["Cenário de teste:", "CT01: Verificar status ofertas", "Status:", "Concluído", "", ""], // 2
     ["Pré Requisito:", "N/A", "", "", "", ""], // 3
     ["Data Execução:", new Date().toLocaleDateString(), "", "", "", ""], // 4
     [""], // 5
-    ["Passo", "Caminho da ação", "Descrição dos Passos", "Resultado Esperado", "Resultado", "Responsável"], // 6
+    ["Passo", "Caminho da ação", "Descrição dos Passos", "Resultado Esperado", "Resultado", "Responsável"], // 6 (Cabeçalho amarelo)
     ["1", "https://sua-url.com", textoBase, "Resultado esperado automático", "OK", "Analista QA"], // 7
     [""], // 8
     ["", "Evidências", "", "", "", ""], // 9
@@ -304,15 +306,20 @@ btnGerarXlsx.addEventListener("click", () => {
 
   const ws = XLSX.utils.aoa_to_sheet(linhas);
 
-  // ---------- MERGES ----------
+  // -----------------------------
+  // MERGES
+  // -----------------------------
   ws["!merges"] = [
     { s: { r: 0, c: 0 }, e: { r: 0, c: 5 } }, // título
     { s: { r: 9, c: 0 }, e: { r: 9, c: 5 } }  // evidências
   ];
 
-  // ---------- ESTILOS ----------
+  // -----------------------------
+  // ESTILOS
+  // -----------------------------
   const azul = "4F81BD";
   const azulClaro = "DBE5F1";
+  const amarelo = "FFF2CC";
 
   const estiloTitulo = {
     font: { bold: true, color: { rgb: "FFFFFF" }, sz: 14 },
@@ -326,9 +333,9 @@ btnGerarXlsx.addEventListener("click", () => {
     alignment: { vertical: "center" }
   };
 
-  const estiloCabecalho = {
-    font: { bold: true, color: { rgb: "FFFFFF" } },
-    fill: { fgColor: { rgb: azul } },
+  const estiloCabecalhoAmarelo = {
+    font: { bold: true },
+    fill: { fgColor: { rgb: amarelo } },
     alignment: { horizontal: "center", vertical: "center", wrapText: true }
   };
 
@@ -336,36 +343,45 @@ btnGerarXlsx.addEventListener("click", () => {
     alignment: { wrapText: true, vertical: "top" }
   };
 
+  // Função auxiliar
   function aplicarEstilo(celula, estilo) {
     if (!ws[celula]) return;
     ws[celula].s = { ...ws[celula].s, ...estilo };
   }
 
-  // TÍTULO
-  aplicarEstilo("A1", estiloTitulo);
-  aplicarEstilo("A10", estiloTitulo); // evidências
+  // -----------------------------
+  // APLICAR ESTILOS
+  // -----------------------------
 
-  // INFO (linhas 1 a 4)
+  // Título
+  aplicarEstilo("A1", estiloTitulo);
+
+  // Evidências
+  aplicarEstilo("A10", estiloTitulo);
+
+  // Linhas 2 a 5 → Azul claro
   for (let r = 1; r <= 4; r++) {
     for (let c = 0; c <= 5; c++) {
       aplicarEstilo(XLSX.utils.encode_cell({ r, c }), estiloInfo);
     }
   }
 
-  // CABEÇALHO TABELA
+  // Linha 7 (índice 6) → Cabeçalho amarelo
   for (let c = 0; c <= 5; c++) {
-    aplicarEstilo(XLSX.utils.encode_cell({ r: 6, c }), estiloCabecalho);
+    aplicarEstilo(XLSX.utils.encode_cell({ r: 6, c }), estiloCabecalhoAmarelo);
   }
 
-  // CORPO
+  // Linha 8 (índice 7) → Corpo
   for (let c = 0; c <= 5; c++) {
     aplicarEstilo(XLSX.utils.encode_cell({ r: 7, c }), estiloCorpo);
   }
 
-  // COLUNA C COM WRAPTEXT
-  aplicarEstilo("C8", estiloCorpo);
+  // WrapText coluna C
+  aplicarEstilo("C8", { alignment: { wrapText: true } });
 
-  // ---------- BORDAS (FEITO *ANTES* DO AJUSTE DE COLUNAS) ----------
+  // -----------------------------
+  // BORDAS (aplicar ANTES das larguras)
+  // -----------------------------
   const range = XLSX.utils.decode_range(ws["!ref"]);
   for (let r = range.s.r; r <= range.e.r; r++) {
     for (let c = range.s.c; c <= range.e.c; c++) {
@@ -384,20 +400,26 @@ btnGerarXlsx.addEventListener("click", () => {
     }
   }
 
-  // ---------- LARGURA DAS COLUNAS (APLICADO POR ÚLTIMO) ----------
+  // -----------------------------
+  // LARGURA DAS COLUNAS (ULTIMO PASSO)
+  // -----------------------------
   ws["!cols"] = [
-    { wch: 18 }, // A
+    { wch: 20 }, // A
     { wch: 45 }, // B
-    { wch: 70 }, // C
+    { wch: 90 }, // C
     { wch: 35 }, // D
-    { wch: 12 }, // E
-    { wch: 22 }  // F
+    { wch: 15 }, // E
+    { wch: 25 }  // F
   ];
 
+  // -----------------------------
+  // GERAR ARQUIVO
+  // -----------------------------
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Planejamento");
 
   XLSX.writeFile(wb, "planejamento_estilizado.xlsx");
+
 });
 
 // =========================
@@ -688,6 +710,7 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
 
 
 
