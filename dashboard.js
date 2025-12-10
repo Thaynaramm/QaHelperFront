@@ -279,51 +279,67 @@ if (btnGerarDOCX) {
 
 btnGerarXlsx.addEventListener("click", () => {
 
-let textoBruto = editorCenarios.innerText.trim()
-  ? editorCenarios.innerText
-  : outputCenarios.value;
+  // Captura o texto (editor ou textarea)
+  let textoBruto = editorCenarios.innerText.trim()
+    ? editorCenarios.innerText
+    : outputCenarios.value;
 
-// Agora aplicamos as quebras de linha no texto final
-let textoBase = textoBruto
-  .trim()
-  .replace(/Dado/g, "\nDado")
-  .replace(/Quando/g, "\nQuando")
-  .replace(/Então/g, "\nEntão");
+  if (!textoBruto.trim()) {
+    alert("Nenhum cenário encontrado.");
+    return;
+  }
 
-if (!textoBase.trim()) {
-  alert("Nenhum cenário encontrado.");
-  return;
-}
+  // -----------------------------------------
+  // 1) PREPARAR CENÁRIOS → 1 PASSO POR CENÁRIO
+  // -----------------------------------------
 
-  // -----------------------------
-  // MATRIZ COMPLETA DO ARQUIVO
-  // -----------------------------
+  // Quebra em blocos separados por linha vazia
+  let blocos = textoBruto
+    .split(/\n\s*\n/)        // separa onde houver linha em branco
+    .map(b => b.trim())
+    .filter(b => b.length > 0);
+
+  // Transformar cada bloco em um PASSO
+  let passos = blocos.map((cenario, index) => {
+    return [
+      (index + 1).toString(),        // Nº do passo
+      "https://sua-url.com",         // Caminho
+      cenario.replace(/\n/g, "\n"),  // Cenário completo com quebras
+      "Resultado esperado automático",
+      "OK",
+      "Analista QA"
+    ];
+  });
+
+  // -----------------------------------------
+  // 2) MONTAR MATRIZ PRINCIPAL
+  // -----------------------------------------
   const linhas = [
-    ["", "Roteiro de Teste HML", "", "", "", ""],  // 0 (Título)
-    ["História:", "1900422", "Quantidade de Steps:", "1", "", ""],  // 1
-    ["Cenário de teste:", "CT01: Verificar status ofertas", "Status:", "Concluído", "", ""], // 2
+    ["", "Roteiro de Teste HML", "", "", "", ""],  // 0
+    ["História:", "1900422", "Quantidade de Steps:", passos.length, "", ""], // 1
+    ["Cenário de teste:", "Execução de múltiplos cenários", "Status:", "Concluído", "", ""], // 2
     ["Pré Requisito:", "N/A", "", "", "", ""], // 3
     ["Data Execução:", new Date().toLocaleDateString(), "", "", "", ""], // 4
     [""], // 5
-    ["Passo", "Caminho da ação", "Descrição dos Passos", "Resultado Esperado", "Resultado", "Responsável"], // 6 (Cabeçalho amarelo)
-    ["1", "https://sua-url.com", textoBase, "Resultado esperado automático", "OK", "Analista QA"], // 7
-    [""], // 8
+    ["Passo", "Caminho da ação", "Descrição dos Passos", "Resultado Esperado", "Resultado", "Responsável"], // 6 → cabeçalho amarelo
+    ...passos, // ← todos os cenários convertidos em passos
+    [""], // linha vazia
     ["", "Evidências", "", "", "", ""], // 9
   ];
 
   const ws = XLSX.utils.aoa_to_sheet(linhas);
 
-  // -----------------------------
-  // MERGES
-  // -----------------------------
+  // -----------------------------------------
+  // 3) MERGES
+  // -----------------------------------------
   ws["!merges"] = [
     { s: { r: 0, c: 0 }, e: { r: 0, c: 5 } }, // título
-    { s: { r: 9, c: 0 }, e: { r: 9, c: 5 } }  // evidências
+    { s: { r: 9 + passos.length, c: 0 }, e: { r: 9 + passos.length, c: 5 } } // evidências
   ];
 
-  // -----------------------------
-  // ESTILOS
-  // -----------------------------
+  // -----------------------------------------
+  // 4) ESTILOS
+  // -----------------------------------------
   const azul = "4F81BD";
   const azulClaro = "DBE5F1";
   const amarelo = "FFF2CC";
@@ -350,45 +366,46 @@ if (!textoBase.trim()) {
     alignment: { wrapText: true, vertical: "top" }
   };
 
-  // Função auxiliar
   function aplicarEstilo(celula, estilo) {
     if (!ws[celula]) return;
     ws[celula].s = { ...ws[celula].s, ...estilo };
   }
 
-  // -----------------------------
-  // APLICAR ESTILOS
-  // -----------------------------
+  // -----------------------------------------
+  // 5) APLICAR ESTILOS MANUAIS
+  // -----------------------------------------
 
-  // Título
   aplicarEstilo("A1", estiloTitulo);
 
-  // Evidências
-  aplicarEstilo("A10", estiloTitulo);
+  // Linha de evidências (posição dinâmica)
+  const linhaEvidencias = 9 + passos.length;
+  aplicarEstilo("A" + (linhaEvidencias + 1), estiloTitulo);
 
-  // Linhas 2 a 5 → Azul claro
+  // Linhas 2–5 → azul claro
   for (let r = 1; r <= 4; r++) {
     for (let c = 0; c <= 5; c++) {
       aplicarEstilo(XLSX.utils.encode_cell({ r, c }), estiloInfo);
     }
   }
 
-  // Linha 7 (índice 6) → Cabeçalho amarelo
+  // Linha 7 (índice 6) → cabeçalho amarelo
   for (let c = 0; c <= 5; c++) {
     aplicarEstilo(XLSX.utils.encode_cell({ r: 6, c }), estiloCabecalhoAmarelo);
   }
 
-  // Linha 8 (índice 7) → Corpo
-  for (let c = 0; c <= 5; c++) {
-    aplicarEstilo(XLSX.utils.encode_cell({ r: 7, c }), estiloCorpo);
+  // Corpo (todas as linhas de passos)
+  let corpoInicio = 7;
+  let corpoFim = 7 + passos.length - 1;
+
+  for (let r = corpoInicio; r <= corpoFim; r++) {
+    for (let c = 0; c <= 5; c++) {
+      aplicarEstilo(XLSX.utils.encode_cell({ r, c }), estiloCorpo);
+    }
   }
 
-  // WrapText coluna C
-  aplicarEstilo("C8", { alignment: { wrapText: true } });
-
-  // -----------------------------
-  // BORDAS (aplicar ANTES das larguras)
-  // -----------------------------
+  // -----------------------------------------
+  // 6) BORDAS EM TODA A PLANILHA
+  // -----------------------------------------
   const range = XLSX.utils.decode_range(ws["!ref"]);
   for (let r = range.s.r; r <= range.e.r; r++) {
     for (let c = range.s.c; c <= range.e.c; c++) {
@@ -407,21 +424,21 @@ if (!textoBase.trim()) {
     }
   }
 
-  // -----------------------------
-  // LARGURA DAS COLUNAS (ULTIMO PASSO)
-  // -----------------------------
+  // -----------------------------------------
+  // 7) LARGURA DAS COLUNAS
+  // -----------------------------------------
   ws["!cols"] = [
-    { wch: 20 }, // A
-    { wch: 45 }, // B
-    { wch: 90 }, // C
-    { wch: 35 }, // D
-    { wch: 15 }, // E
-    { wch: 25 }  // F
+    { wch: 18 }, // Passo
+    { wch: 40 }, // Caminho
+    { wch: 90 }, // Descrição
+    { wch: 35 }, // Resultado Esperado
+    { wch: 15 }, // Resultado
+    { wch: 25 }  // Responsável
   ];
 
-  // -----------------------------
-  // GERAR ARQUIVO
-  // -----------------------------
+  // -----------------------------------------
+  // 8) GERAR ARQUIVO
+  // -----------------------------------------
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Planejamento");
 
@@ -717,6 +734,7 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
 
 
 
