@@ -531,4 +531,155 @@ btnCopyImage.onclick = () => {
     });
   });
 };
+function getMousePos(canvasEl, evt) {
+  const rect = canvasEl.getBoundingClientRect();
+  const scaleX = canvasEl.width / rect.width;
+  const scaleY = canvasEl.height / rect.height;
+  return {
+    x: (evt.clientX - rect.left) * scaleX,
+    y: (evt.clientY - rect.top) * scaleY,
+  };
+}
+
+// Mouse events
+canvas.addEventListener("mousedown", (e) => {
+  if (!currentTool) return;
+  const pos = getMousePos(canvas, e);
+
+  isDrawing = true;
+  startX = pos.x;
+  startY = pos.y;
+  tempElement = null;
+});
+
+canvas.addEventListener("mousemove", (e) => {
+  if (!isDrawing) return;
+
+  const pos = getMousePos(canvas, e);
+  redrawCanvas();
+
+  if (currentTool === "arrow") {
+    tempElement = {
+      tipo: "seta",
+      x1: startX,
+      y1: startY,
+      x2: pos.x,
+      y2: pos.y,
+      color: "red",
+      lineWidth: 3,
+    };
+  }
+
+  if (currentTool === "rect" || currentTool === "crop") {
+    tempElement = {
+      tipo: currentTool === "crop" ? "crop" : "retangulo",
+      x: Math.min(startX, pos.x),
+      y: Math.min(startY, pos.y),
+      w: Math.abs(pos.x - startX),
+      h: Math.abs(pos.y - startY),
+      color: currentTool === "crop" ? "#00aa00" : "blue",
+      lineWidth: 2,
+    };
+  }
+
+  if (tempElement) desenharElemento(tempElement);
+});
+
+canvas.addEventListener("mouseup", () => {
+  if (!isDrawing) return;
+  isDrawing = false;
+
+  if (currentTool !== "crop") {
+    salvarUndo();
+    elementos.push(tempElement);
+    tempElement = null;
+    redrawCanvas();
+    return;
+  }
+
+  // CROP REAL
+  const cropRect = tempElement;
+
+  const imgEl = elementos.find((el) => el.tipo === "imagem");
+  if (!imgEl) return;
+
+  const interX = Math.max(cropRect.x, imgEl.x);
+  const interY = Math.max(cropRect.y, imgEl.y);
+  const interW = Math.min(cropRect.x + cropRect.w, imgEl.x + imgEl.w) - interX;
+  const interH = Math.min(cropRect.y + cropRect.h, imgEl.y + imgEl.h) - interY;
+
+  if (interW <= 0 || interH <= 0) return;
+
+  const scaleX = imgEl.img.width / imgEl.w;
+  const scaleY = imgEl.img.height / imgEl.h;
+
+  const srcX = (interX - imgEl.x) * scaleX;
+  const srcY = (interY - imgEl.y) * scaleY;
+  const srcW = interW * scaleX;
+  const srcH = interH * scaleY;
+
+  const tempCanvas = document.createElement("canvas");
+  tempCanvas.width = interW;
+  tempCanvas.height = interH;
+  const tctx = tempCanvas.getContext("2d");
+  tctx.drawImage(imgEl.img, srcX, srcY, srcW, srcH, 0, 0, interW, interH);
+
+  const newImg = new Image();
+  newImg.onload = () => {
+    salvarUndo();
+    canvas.width = interW;
+    canvas.height = interH;
+
+    elementos = [
+      { tipo: "imagem", img: newImg, x: 0, y: 0, w: interW, h: interH },
+    ];
+
+    redrawCanvas();
+  };
+
+  newImg.src = tempCanvas.toDataURL();
+});
+
+canvas.addEventListener("mouseleave", () => {
+  if (isDrawing) {
+    isDrawing = false;
+    tempElement = null;
+    redrawCanvas();
+  }
+});
+
+// CTRL+V --- COLAR IMAGEM
+window.addEventListener("paste", (e) => {
+  const items = e.clipboardData.items;
+  const imgItem = [...items].find((i) => i.type.startsWith("image/"));
+  if (!imgItem) return;
+
+  // evita colar canvas dentro do editor quando veio do botão "copiar imagem"
+  if (editorCenarios.contains(document.activeElement) && isPastingFromCanvas) {
+    isPastingFromCanvas = false;
+    return;
+  }
+
+  e.preventDefault();
+
+  const file = imgItem.getAsFile();
+  const img = new Image();
+
+  img.onload = () => {
+    salvarUndo();
+
+    canvas.width = img.width;
+    canvas.height = img.height;
+
+    elementos = [
+      { tipo: "imagem", img, x: 0, y: 0, w: img.width, h: img.height },
+    ];
+
+    redrawCanvas();
+  };
+
+  img.src = URL.createObjectURL(file);
+});
+
+
 
