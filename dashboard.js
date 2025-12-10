@@ -278,6 +278,7 @@ if (btnGerarDOCX) {
 // =========================
 btnGerarXlsx.addEventListener("click", () => {
 
+  // Captura o texto do editor
   let textoBruto = editorCenarios.innerText.trim()
     ? editorCenarios.innerText
     : outputCenarios.value;
@@ -288,83 +289,70 @@ btnGerarXlsx.addEventListener("click", () => {
   }
 
   // -----------------------------------------
-  // 1) SEPARAR CENÁRIOS EM BLOCOS
+  // 1) UM CENÁRIO = UMA LINHA NO XLSX
   // -----------------------------------------
+
   let blocosDeCenario = textoBruto
-    .split(/\n\s*\n/) // separa por linha vazia
+    .split(/\n\s*\n/)            // separa cenários por linha vazia
     .map(b => b.trim())
     .filter(b => b.length > 0);
 
-  // -----------------------------------------
-  // 2) TRANSFORMAR CADA CENÁRIO EM MÚLTIPLAS LINHAS
-  // -----------------------------------------
   let passos = [];
   let passoNumero = 1;
 
   blocosDeCenario.forEach(cenarioCompleto => {
 
-    // separar em linhas internas
-    let linhas = cenarioCompleto
-      .split("\n")
-      .map(l => l.trim())
-      .filter(l => l.length > 0);
+    // Junta todo o cenário em uma única célula com quebras de linha
+    let descricaoUnica = cenarioCompleto.replace(/\n/g, "\n");
 
-    // PRIMEIRA LINHA DO CENÁRIO → tem nº do passo
     passos.push([
-      passoNumero.toString(),          // Passo
-      "https://sua-url.com",           // Caminho
-      linhas[0],                       // Descrição 1
-      "Resultado esperado automático", // Resultado esperado
-      "OK",                            // Resultado
-      "Analista QA"                    // Responsável
+      passoNumero.toString(),       // número do passo
+      "https://sua-url.com",        // URL somente no passo, não repete
+      descricaoUnica,               // cenário inteiro na mesma célula
+      "Resultado esperado automático",
+      "OK",
+      "Analista QA"
     ]);
-
-    // RESTANTE DAS LINHAS → linha contínua do cenário
-    for (let i = 1; i < linhas.length; i++) {
-      passos.push([
-        "",                             // passo vazio (continuação)
-        "https://sua-url.com",
-        linhas[i],                      // cada linha individual
-        "",
-        "",
-        ""
-      ]);
-    }
 
     passoNumero++;
   });
 
+
   // -----------------------------------------
-  // 3) MONTAR MATRIZ COMPLETA DO EXCEL
+  // 2) MONTAR MATRIZ PRINCIPAL
   // -----------------------------------------
-  const linhasXLSX = [
-    ["", "Roteiro de Teste HML", "", "", "", ""],  // 0
-    ["História:", "1900422", "Quantidade de Steps:", blocosDeCenario.length, "", ""], // 1
-    ["Cenário de teste:", "Execução de múltiplos cenários", "Status:", "Concluído", "", ""], // 2
-    ["Pré Requisito:", "N/A", "", "", "", ""], // 3
-    ["Data Execução:", new Date().toLocaleDateString(), "", "", "", ""], // 4
-    [""], // 5
-    ["Passo", "Caminho da ação", "Descrição dos Passos", "Resultado Esperado", "Resultado", "Responsável"], // 6
-    ...passos, // 7+
+  const linhas = [
+    ["", "Roteiro de Teste HML", "", "", "", ""],  
+    ["História:", "1900422", "Quantidade de Steps:", passos.length, "", ""],
+    ["Cenário de teste:", "Execução de múltiplos cenários", "Status:", "Concluído", "", ""],
+    ["Pré Requisito:", "N/A", "", "", "", ""],
+    ["Data Execução:", new Date().toLocaleDateString(), "", "", "", ""],
     [""],
-    ["", "Evidências", "", "", "", ""]
+    ["Passo", "Caminho da ação", "Descrição dos Passos", "Resultado Esperado", "Resultado", "Responsável"],
+    ...passos,
+    [""],
+    ["", "Evidências", "", "", "", ""],
   ];
 
-  const ws = XLSX.utils.aoa_to_sheet(linhasXLSX);
+  const ws = XLSX.utils.aoa_to_sheet(linhas);
+
 
   // -----------------------------------------
-  // 4) APLICAR MERGES
+  // 3) MERGES
   // -----------------------------------------
+
   const linhaEvidencias = 7 + passos.length + 1;
 
   ws["!merges"] = [
-    { s: { r: 0, c: 0 }, e: { r: 0, c: 5 } }, // título
-    { s: { r: linhaEvidencias, c: 0 }, e: { r: linhaEvidencias, c: 5 } } // evidências
+    { s: { r: 0, c: 0 }, e: { r: 0, c: 5 } }, 
+    { s: { r: linhaEvidencias, c: 0 }, e: { r: linhaEvidencias, c: 5 } }
   ];
 
+
   // -----------------------------------------
-  // 5) ESTILOS
+  // 4) ESTILOS
   // -----------------------------------------
+
   const azul = "4F81BD";
   const azulClaro = "DBE5F1";
   const amarelo = "FFF2CC";
@@ -387,7 +375,7 @@ btnGerarXlsx.addEventListener("click", () => {
     alignment: { horizontal: "center", vertical: "center", wrapText: true }
   };
 
-  const estiloLinha = {
+  const estiloCorpo = {
     alignment: { wrapText: true, vertical: "top" }
   };
 
@@ -402,31 +390,33 @@ btnGerarXlsx.addEventListener("click", () => {
   // Evidências
   aplicarEstilo("A" + (linhaEvidencias + 1), estiloTitulo);
 
-  // Linhas 2 a 5 → azul claro
+  // Linhas 2–5 → azul claro
   for (let r = 1; r <= 4; r++) {
     for (let c = 0; c <= 5; c++) {
       aplicarEstilo(XLSX.utils.encode_cell({ r, c }), estiloInfo);
     }
   }
 
-  // Linha 7 (índice 6) → cabeçalho amarelo
+  // Linha 7 → cabeçalho amarelo
   for (let c = 0; c <= 5; c++) {
     aplicarEstilo(XLSX.utils.encode_cell({ r: 6, c }), estiloCabecalhoAmarelo);
   }
 
-  // Corpo (todas as linhas)
-  let inicio = 7;
-  let fim = 7 + passos.length - 1;
+  // Corpo (as linhas dos passos)
+  let corpoInicio = 7;
+  let corpoFim = 7 + passos.length - 1;
 
-  for (let r = inicio; r <= fim; r++) {
+  for (let r = corpoInicio; r <= corpoFim; r++) {
     for (let c = 0; c <= 5; c++) {
-      aplicarEstilo(XLSX.utils.encode_cell({ r, c }), estiloLinha);
+      aplicarEstilo(XLSX.utils.encode_cell({ r, c }), estiloCorpo);
     }
   }
 
+
   // -----------------------------------------
-  // 6) BORDAS EM TODA A PLANILHA
+  // 5) BORDAS EM TODA A PLANILHA
   // -----------------------------------------
+
   const range = XLSX.utils.decode_range(ws["!ref"]);
 
   for (let r = range.s.r; r <= range.e.r; r++) {
@@ -438,29 +428,33 @@ btnGerarXlsx.addEventListener("click", () => {
       if (!ws[addr].s) ws[addr].s = {};
 
       ws[addr].s.border = {
-        top: { style: "thin" },
+        top:    { style: "thin" },
         bottom: { style: "thin" },
-        left: { style: "thin" },
-        right: { style: "thin" }
+        left:   { style: "thin" },
+        right:  { style: "thin" }
       };
     }
   }
 
+
   // -----------------------------------------
-  // 7) LARGURA DAS COLUNAS
+  // 6) LARGURA DAS COLUNAS
   // -----------------------------------------
+
   ws["!cols"] = [
     { wch: 12 }, // Passo
     { wch: 40 }, // Caminho
-    { wch: 80 }, // Descrição (muito larga)
-    { wch: 35 }, // Resultado esperado
-    { wch: 10 }, // Resultado
-    { wch: 25 }  // Responsável
+    { wch: 100 }, // Descrição (bem larga)
+    { wch: 35 }, 
+    { wch: 10 }, 
+    { wch: 25 }
   ];
 
+
   // -----------------------------------------
-  // 8) GERAR ARQUIVO
+  // 7) GERAR ARQUIVO
   // -----------------------------------------
+
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Planejamento");
 
@@ -756,6 +750,7 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
 
 
 
