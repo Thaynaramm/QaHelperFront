@@ -116,63 +116,107 @@ if (btnLimparEditor) {
 
 // =========================
 // HISTÓRICO
-// =========================
+// =========================================================
 
 const historicoLista = document.getElementById("historicoLista");
+let historico = carregarHistoricoLocal() || [];
 
-function adicionarAoHistorico(tipo, nomeArquivo, blob) {
-  if (!historicoLista) return;
+// =========================
+// SALVAR / CARREGAR
+// =========================
 
-  const vazio = historicoLista.querySelector(".historico-item-vazio");
-  if (vazio) vazio.remove();
+function salvarHistoricoLocal() {
+  localStorage.setItem("qahelper_historico", JSON.stringify(historico));
+}
 
-  const url = URL.createObjectURL(blob);
+function carregarHistoricoLocal() {
+  const salvo = localStorage.getItem("qahelper_historico");
+  return salvo ? JSON.parse(salvo) : [];
+}
 
-  const item = document.createElement("div");
-  item.className = "historico-item";
+// =========================
+// RENDERIZAR HISTÓRICO
+// =========================
 
-  item.innerHTML = `
-    <div class="historico-item-header">
-      <div class="historico-titulo">${nomeArquivo}</div>
-      <span class="historico-tipo">${tipo}</span>
-    </div>
+function renderizarHistorico() {
+  historicoLista.innerHTML = "";
 
-    <div class="historico-meta">
-      <span class="historico-data">Gerado em ${new Date().toLocaleString()}</span>
+  if (historico.length === 0) {
+    historicoLista.innerHTML = `
+      <div class="historico-item historico-item-vazio">
+        <div class="historico-titulo">Nenhum arquivo gerado ainda</div>
+        <div class="historico-meta">
+          <span class="historico-data">Gere cenários ou planejamento para preencher o histórico.</span>
+        </div>
+      </div>`;
+    return;
+  }
 
-      <div class="historico-actions">
-        <button class="btn btn-outline btn-download">Baixar</button>
-        <button class="btn btn-outline btn-delete">Excluir</button>
+  historico.forEach((item, index) => {
+    const div = document.createElement("div");
+    div.className = "historico-item";
+
+    div.innerHTML = `
+      <div class="historico-item-header">
+        <div class="historico-titulo">${item.nome}</div>
+        <span class="historico-tipo">${item.tipo}</span>
       </div>
-    </div>
-  `;
 
-  historicoLista.appendChild(item);
+      <div class="historico-meta">
+        <span class="historico-data">Gerado em ${item.data}</span>
 
-  // BAIXAR
-  item.querySelector(".btn-download").addEventListener("click", () => {
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = nomeArquivo;
-    a.click();
-  });
+        <div class="historico-actions">
+          <button class="btn btn-outline btn-download">Baixar</button>
+          <button class="btn btn-outline btn-delete">Excluir</button>
+        </div>
+      </div>
+    `;
 
-  // EXCLUIR
-  item.querySelector(".btn-delete").addEventListener("click", () => {
-    item.remove();
-    URL.revokeObjectURL(url);
+    // Ações
+    const btnDownload = div.querySelector(".btn-download");
+    const btnDelete = div.querySelector(".btn-delete");
 
-    if (!historicoLista.querySelector(".historico-item")) {
-      historicoLista.innerHTML = `
-        <div class="historico-item historico-item-vazio">
-          <div class="historico-titulo">Nenhum arquivo gerado ainda</div>
-          <div class="historico-meta">
-            <span class="historico-data">Gere cenários ou planejamento para preencher o histórico.</span>
-          </div>
-        </div>`;
-    }
+    btnDownload.addEventListener("click", () => {
+      const a = document.createElement("a");
+      a.href = item.url;
+      a.download = item.nome;
+      a.click();
+    });
+
+    btnDelete.addEventListener("click", () => {
+      historico.splice(index, 1);
+      salvarHistoricoLocal();
+      renderizarHistorico();
+    });
+
+    historicoLista.appendChild(div);
   });
 }
+
+// =========================
+// ADICIONAR ITEM AO HISTÓRICO
+// =========================
+
+function adicionarAoHistorico(tipo, nomeArquivo, blob) {
+  const url = URL.createObjectURL(blob);
+
+  const novoItem = {
+    tipo,
+    nome: nomeArquivo,
+    url,
+    data: new Date().toLocaleString()
+  };
+
+  historico.push(novoItem);
+  salvarHistoricoLocal();
+  renderizarHistorico();
+}
+
+// =========================
+// CARREGAR HISTÓRICO AO INICIAR
+// =========================
+renderizarHistorico();
+
 
 // EXPORTAR DOCX (IMAGENS INLINE NA ORDEM CORRETA)
 // =========================
@@ -745,6 +789,7 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
 
 
 
