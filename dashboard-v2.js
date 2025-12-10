@@ -93,9 +93,14 @@ if (btnMoverParaEdicao) {
     const texto = outputCenarios.value;
     if (!texto.trim()) return;
 
-    editorCenarios.innerHTML = texto
+    // Filtra apenas blocos que começam com "Cenário:"
+    const linhasValidas = texto
       .split("\n")
-      .map((l) => (l ? `<div>${l}</div>` : "<br>"))
+      .filter((l) => l.trim().startsWith("Cenário:") || l.trim().startsWith("Dado") || l.trim().startsWith("Quando") || l.trim().startsWith("Então"));
+
+    // Converte de volta para HTML
+    editorCenarios.innerHTML = linhasValidas
+      .map((l) => `<div>${l}</div>`)
       .join("");
 
     editorCenarios.focus();
@@ -680,6 +685,7 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
 
 
 
