@@ -290,26 +290,50 @@ btnGerarXlsx.addEventListener("click", () => {
   }
 
   // -----------------------------------------
-  // 1) PREPARAR CENÁRIOS → 1 PASSO POR CENÁRIO
-  // -----------------------------------------
+// CADA CENÁRIO → VÁRIOS PASSOS (LINHAS SEPARADAS)
+// -----------------------------------------
 
-  // Quebra em blocos separados por linha vazia
-  let blocos = textoBruto
-    .split(/\n\s*\n/)        // separa onde houver linha em branco
-    .map(b => b.trim())
-    .filter(b => b.length > 0);
+let blocosDeCenario = textoBruto
+  .split(/\n\s*\n/)            // separa cenários por linha vazia
+  .map(b => b.trim())
+  .filter(b => b.length > 0);
 
-  // Transformar cada bloco em um PASSO
-  let passos = blocos.map((cenario, index) => {
-    return [
-      (index + 1).toString(),        // Nº do passo
-      "https://sua-url.com",         // Caminho
-      cenario.replace(/\n/g, "\n"),  // Cenário completo com quebras
-      "Resultado esperado automático",
-      "OK",
-      "Analista QA"
-    ];
-  });
+// array final com todos os passos formatados
+let passos = [];
+let passoNumero = 1;
+
+blocosDeCenario.forEach(cenarioCompleto => {
+
+  // Quebra o cenário em linhas individuais
+  let linhas = cenarioCompleto
+    .split("\n")
+    .map(l => l.trim())
+    .filter(l => l.length > 0);
+
+  // A primeira linha vai com número de passo (ex: “1”)
+  passos.push([
+    passoNumero.toString(),
+    "https://sua-url.com",
+    linhas[0],                        // primeira linha do cenário
+    "Resultado esperado automático",
+    "OK",
+    "Analista QA"
+  ]);
+
+  // As próximas linhas ficam vazias na coluna "Passo"
+  for (let i = 1; i < linhas.length; i++) {
+    passos.push([
+      "",                             // passo em branco (continuação)
+      "https://sua-url.com",
+      linhas[i],                      // linhas subsequentes do cenário
+      "",
+      "",
+      ""
+    ]);
+  }
+
+  passoNumero++;
+});
 
   // -----------------------------------------
   // 2) MONTAR MATRIZ PRINCIPAL
@@ -734,6 +758,7 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
 
 
 
