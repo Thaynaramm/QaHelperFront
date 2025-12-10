@@ -178,22 +178,17 @@ function adicionarAoHistorico(tipo, nomeArquivo, blob) {
 // EXPORTAR DOCX (NOVO FORMATO)
 // =========================
 
+// EXPORTAR DOCX (IMAGENS INLINE NA ORDEM CORRETA)
+// =========================
+
 if (btnGerarDOCX) {
   btnGerarDOCX.addEventListener("click", async () => {
 
-    // Filtra apenas cenários
-    const linhas = editorCenarios.innerText
-      .split("\n")
-      .map((l) => l.trim())
-      .filter((l) =>
-        l.startsWith("Cenário:") ||
-        l.startsWith("Dado") ||
-        l.startsWith("Quando") ||
-        l.startsWith("Então")
-      );
+    // Obter o HTML real do editor
+    const html = editorCenarios.innerHTML.trim();
 
-    if (linhas.length === 0) {
-      alert("Nenhum cenário válido para exportar.");
+    if (!html) {
+      alert("O editor está vazio.");
       return;
     }
 
@@ -204,59 +199,76 @@ if (btnGerarDOCX) {
 
     const children = [];
 
-    // ------------------------
-    // APENAS CENÁRIOS
-    // ------------------------
-    linhas.forEach((linha) => {
-      children.push(
-        new docx.Paragraph({
-          children: [new docx.TextRun({ text: linha, ...textoStyle })],
-          spacing: { after: 150 }
-        })
-      );
-    });
+    // Criar um container temporário
+    const container = document.createElement("div");
+    container.innerHTML = html;
 
-    // ------------------------
-    // IMAGEM (se houver)
-    // ------------------------
-    if (canvas && canvas.width && canvas.height) {
-      try {
-        const dataUrl = canvas.toDataURL("image/png");
-        const base64 = dataUrl.split(",")[1];
-        const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+    // Analisa elemento por elemento, mantendo a ordem
+    function processarNode(node) {
+      if (node.nodeType === Node.TEXT_NODE) {
+        const texto = node.textContent.trim();
+        if (texto) {
+          children.push(
+            new docx.Paragraph({
+              children: [new docx.TextRun({ text: texto, ...textoStyle })],
+              spacing: { after: 150 }
+            })
+          );
+        }
+        return;
+      }
 
-        const maxWidth = 600;
-        const scale = Math.min(1, maxWidth / canvas.width);
+      if (node.nodeType === Node.ELEMENT_NODE) {
+        if (node.tagName === "BR") {
+          children.push(new docx.Paragraph({ children: [] }));
+          return;
+        }
 
-        children.push(
-          new docx.Paragraph({
-            children: [
-              new docx.ImageRun({
-                data: bytes,
-                transformation: {
-                  width: canvas.width * scale,
-                  height: canvas.height * scale
-                }
+        // IMAGEM INLINE
+        if (node.tagName === "IMG") {
+          const src = node.getAttribute("src");
+
+          if (src.startsWith("data:image")) {
+            const base64 = src.split(",")[1];
+            const bytes = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
+
+            // DIMENSÕES EXATAS (como você pediu)
+            const largura = node.width || 500; 
+            const altura = node.height || 300;
+
+            children.push(
+              new docx.Paragraph({
+                children: [
+                  new docx.ImageRun({
+                    data: bytes,
+                    transformation: {
+                      width: largura,
+                      height: altura
+                    }
+                  })
+                ],
+                spacing: { after: 300 }
               })
-            ]
-          })
-        );
+            );
+          }
+          return;
+        }
 
-      } catch (e) {
-        console.error("Erro ao anexar imagem:", e);
+        // DIV ou outros containers → processar conteúdo interno
+        node.childNodes.forEach(processarNode);
       }
     }
 
-    // ------------------------
-    // GERA DOCUMENTO FINAL
-    // ------------------------
+    // Inicia o parser
+    container.childNodes.forEach(processarNode);
+
     const doc = new docx.Document({
       sections: [{ children }],
     });
 
     const blob = await docx.Packer.toBlob(doc);
-
     const nomeArquivo = "documento-qa.docx";
+
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
     a.download = nomeArquivo;
@@ -679,6 +691,7 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
 
 
 
