@@ -178,8 +178,6 @@ function adicionarAoHistorico(tipo, nomeArquivo, blob) {
 // EXPORTAR DOCX (NOVO FORMATO)
 // =========================
 
-const btnGerarDOCX = document.getElementById("btnGerarDOCX");
-
 if (btnGerarDOCX) {
   btnGerarDOCX.addEventListener("click", async () => {
     if (!editorCenarios.innerText.trim()) {
@@ -187,48 +185,65 @@ if (btnGerarDOCX) {
       return;
     }
 
+    // FILTRA APENAS LINHAS DE CENÁRIOS
+    const linhasFiltradas = editorCenarios.innerText
+      .split("\n")
+      .map(l => l.trim())
+      .filter(l =>
+        l.startsWith("Cenário:")
+        || l.startsWith("Dado")
+        || l.startsWith("Quando")
+        || l.startsWith("Então")
+      );
+
+    // SE NÃO HOUVER LINHA VÁLIDA
+    if (linhasFiltradas.length === 0) {
+      alert("Nenhum cenário válido encontrado para exportar.");
+      return;
+    }
+
     const tituloStyle = {
       font: "Calibri",
-      size: 28, // 14pt
-      bold: true
+      size: 28, // 14 pt
+      bold: true,
     };
 
     const textoStyle = {
       font: "Calibri",
-      size: 24 // 12pt
+      size: 24, // 12 pt
     };
 
     const children = [];
 
-    // TÍTULO
+    // TÍTULO (APENAS O REQUISITO)
     children.push(
       new docx.Paragraph({
         children: [
           new docx.TextRun({
             text: inputRequisito.value || "Documento QA",
-            ...tituloStyle
-          })
+            ...tituloStyle,
+          }),
         ],
-       spacing: { after: 300 }
+        spacing: { after: 300 },
       })
     );
 
-    // CENÁRIOS
-    editorCenarios.innerText.split("\n").forEach((linha) => {
+    // CENÁRIOS (SEM REQUISITO)
+    linhasFiltradas.forEach((linha) => {
       children.push(
         new docx.Paragraph({
           children: [
             new docx.TextRun({
               text: linha,
-              ...textoStyle
-            })
+              ...textoStyle,
+            }),
           ],
-          spacing: { after: 150 }
+          spacing: { after: 150 },
         })
       );
     });
 
-    // IMAGEM DO CANVAS
+    // IMAGEM DO CANVAS (se existir)
     if (canvas && canvas.width && canvas.height) {
       try {
         const dataUrl = canvas.toDataURL("image/png");
@@ -685,6 +700,7 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
 
 
 
