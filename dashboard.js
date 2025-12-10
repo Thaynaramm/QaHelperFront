@@ -115,208 +115,205 @@ if (btnLimparEditor) {
 }
 
 // =========================
-// HISTÓRICO
-// =========================================================
-
-const historicoLista = document.getElementById("historicoLista");
-let historico = carregarHistoricoLocal() || [];
-
 // =========================
-// SALVAR / CARREGAR
+// EXPORTAR XLSX
 // =========================
+btnGerarXlsx.addEventListener("click", () => {
 
-function salvarHistoricoLocal() {
-  localStorage.setItem("qahelper_historico", JSON.stringify(historico));
-}
+  // Captura o texto do editor
+  let textoBruto = editorCenarios.innerText.trim()
+    ? editorCenarios.innerText
+    : outputCenarios.value;
 
-function carregarHistoricoLocal() {
-  const salvo = localStorage.getItem("qahelper_historico");
-  return salvo ? JSON.parse(salvo) : [];
-}
-
-// =========================
-// RENDERIZAR HISTÓRICO
-// =========================
-
-function renderizarHistorico() {
-  historicoLista.innerHTML = "";
-
-  if (historico.length === 0) {
-    historicoLista.innerHTML = `
-      <div class="historico-item historico-item-vazio">
-        <div class="historico-titulo">Nenhum arquivo gerado ainda</div>
-        <div class="historico-meta">
-          <span class="historico-data">Gere cenários ou planejamento para preencher o histórico.</span>
-        </div>
-      </div>`;
+  if (!textoBruto.trim()) {
+    alert("Nenhum cenário encontrado.");
     return;
   }
 
-  historico.forEach((item, index) => {
-    const div = document.createElement("div");
-    div.className = "historico-item";
+  // -----------------------------------------
+  // 1) SEPARAR CENÁRIOS — CADA "Cenário:" INICIA UM BLOCO
+  // -----------------------------------------
 
-    div.innerHTML = `
-      <div class="historico-item-header">
-        <div class="historico-titulo">${item.nome}</div>
-        <span class="historico-tipo">${item.tipo}</span>
-      </div>
+  let blocosDeCenario = textoBruto
+    .split(/(?=Cenário:)/g)   // divide sempre que encontra "Cenário:"
+    .map(b => b.trim())
+    .filter(b => b.length > 0);
 
-      <div class="historico-meta">
-        <span class="historico-data">Gerado em ${item.data}</span>
+  let passos = [];
+  let passoNumero = 1;
 
-        <div class="historico-actions">
-          <button class="btn btn-outline btn-download">Baixar</button>
-          <button class="btn btn-outline btn-delete">Excluir</button>
-        </div>
-      </div>
-    `;
+  blocosDeCenario.forEach(cenarioCompleto => {
 
-    // Ações
-    const btnDownload = div.querySelector(".btn-download");
-    const btnDelete = div.querySelector(".btn-delete");
+    // Todo o cenário em UMA única célula com quebras de linha
+    let descricaoUnica = cenarioCompleto.replace(/\n/g, "\n");
 
-    btnDownload.addEventListener("click", () => {
-      const a = document.createElement("a");
-      a.href = item.url;
-      a.download = item.nome;
-      a.click();
-    });
+    passos.push([
+      passoNumero.toString(),       // número do passo
+      "https://sua-url.com",        // URL somente na linha do passo
+      descricaoUnica,               // CENÁRIO INTEIRO EM UMA CÉLULA
+      "Resultado esperado automático",
+      "OK",
+      "Analista QA"
+    ]);
 
-    btnDelete.addEventListener("click", () => {
-      historico.splice(index, 1);
-      salvarHistoricoLocal();
-      renderizarHistorico();
-    });
-
-    historicoLista.appendChild(div);
+    passoNumero++;
   });
-}
 
-// =========================
-// ADICIONAR ITEM AO HISTÓRICO
-// =========================
 
-function adicionarAoHistorico(tipo, nomeArquivo, blob) {
-  const url = URL.createObjectURL(blob);
+  // -----------------------------------------
+  // 2) MONTAR A MATRIZ COMPLETA DO XLSX
+  // -----------------------------------------
 
-  const novoItem = {
-    tipo,
-    nome: nomeArquivo,
-    url,
-    data: new Date().toLocaleString()
+  const linhas = [
+    ["", "Roteiro de Teste HML", "", "", "", ""],
+    ["História:", "1900422", "Quantidade de Steps:", passos.length, "", ""],
+    ["Cenário de teste:", "Execução de múltiplos cenários", "Status:", "Concluído", "", ""],
+    ["Pré Requisito:", "N/A", "", "", "", ""],
+    ["Data Execução:", new Date().toLocaleDateString(), "", "", "", ""],
+    [""],
+    ["Passo", "Caminho da ação", "Descrição dos Passos", "Resultado Esperado", "Resultado", "Responsável"],
+    ...passos,           // ← cada cenário vira 1 linha
+    [""],
+    ["", "Evidências", "", "", "", ""],
+  ];
+
+  const ws = XLSX.utils.aoa_to_sheet(linhas);
+
+
+  // -----------------------------------------
+  // 3) MERGES
+  // -----------------------------------------
+
+  const linhaEvidencias = 7 + passos.length + 1;
+
+  ws["!merges"] = [
+    { s: { r: 0, c: 0 }, e: { r: 0, c: 5 } },
+    { s: { r: linhaEvidencias, c: 0 }, e: { r: linhaEvidencias, c: 5 } }
+  ];
+
+
+  // -----------------------------------------
+  // 4) ESTILOS
+  // -----------------------------------------
+
+  const azul = "4F81BD";
+  const azulClaro = "DBE5F1";
+  const amarelo = "FFF2CC";
+
+  const estiloTitulo = {
+    font: { bold: true, color: { rgb: "FFFFFF" }, sz: 14 },
+    fill: { fgColor: { rgb: azul } },
+    alignment: { horizontal: "center", vertical: "center" }
   };
 
-  historico.push(novoItem);
-  salvarHistoricoLocal();
-  renderizarHistorico();
-}
+  const estiloInfo = {
+    font: { bold: true },
+    fill: { fgColor: { rgb: azulClaro } },
+    alignment: { vertical: "center" }
+  };
 
-// =========================
-// CARREGAR HISTÓRICO AO INICIAR
-// =========================
-renderizarHistorico();
+  const estiloCabecalhoAmarelo = {
+    font: { bold: true },
+    fill: { fgColor: { rgb: amarelo } },
+    alignment: { horizontal: "center", vertical: "center", wrapText: true }
+  };
 
+  const estiloCorpo = {
+    alignment: { wrapText: true, vertical: "top" }
+  };
 
-// EXPORTAR DOCX (IMAGENS INLINE NA ORDEM CORRETA)
-// =========================
+  function aplicarEstilo(celula, estilo) {
+    if (!ws[celula]) return;
+    ws[celula].s = { ...ws[celula].s, ...estilo };
+  }
 
-if (btnGerarDOCX) {
-  btnGerarDOCX.addEventListener("click", async () => {
+  // Título
+  aplicarEstilo("A1", estiloTitulo);
 
-    // Obter o HTML real do editor
-    const html = editorCenarios.innerHTML.trim();
+  // Evidências
+  aplicarEstilo("A" + (linhaEvidencias + 1), estiloTitulo);
 
-    if (!html) {
-      alert("O editor está vazio.");
-      return;
+  // Linhas 2–5 → azul claro
+  for (let r = 1; r <= 4; r++) {
+    for (let c = 0; c <= 5; c++) {
+      aplicarEstilo(XLSX.utils.encode_cell({ r, c }), estiloInfo);
     }
+  }
 
-    const textoStyle = {
-      font: "Calibri",
-      size: 24 // 12pt
-    };
+  // Cabeçalho amarelo (linha 7)
+  for (let c = 0; c <= 5; c++) {
+    aplicarEstilo(XLSX.utils.encode_cell({ r: 6, c }), estiloCabecalhoAmarelo);
+  }
 
-    const children = [];
+  // Corpo da tabela (cenários)
+  let corpoInicio = 7;
+  let corpoFim = 7 + passos.length - 1;
 
-    // Criar um container temporário
-    const container = document.createElement("div");
-    container.innerHTML = html;
-
-    // Analisa elemento por elemento, mantendo a ordem
-    function processarNode(node) {
-      if (node.nodeType === Node.TEXT_NODE) {
-        const texto = node.textContent.trim();
-        if (texto) {
-          children.push(
-            new docx.Paragraph({
-              children: [new docx.TextRun({ text: texto, ...textoStyle })],
-              spacing: { after: 150 }
-            })
-          );
-        }
-        return;
-      }
-
-      if (node.nodeType === Node.ELEMENT_NODE) {
-        if (node.tagName === "BR") {
-          children.push(new docx.Paragraph({ children: [] }));
-          return;
-        }
-
-        // IMAGEM INLINE
-        if (node.tagName === "IMG") {
-          const src = node.getAttribute("src");
-
-          if (src.startsWith("data:image")) {
-            const base64 = src.split(",")[1];
-            const bytes = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
-
-            // DIMENSÕES EXATAS (como você pediu)
-            const largura = node.width || 500; 
-            const altura = node.height || 300;
-
-            children.push(
-              new docx.Paragraph({
-                children: [
-                  new docx.ImageRun({
-                    data: bytes,
-                    transformation: {
-                      width: largura,
-                      height: altura
-                    }
-                  })
-                ],
-                spacing: { after: 300 }
-              })
-            );
-          }
-          return;
-        }
-
-        // DIV ou outros containers → processar conteúdo interno
-        node.childNodes.forEach(processarNode);
-      }
+  for (let r = corpoInicio; r <= corpoFim; r++) {
+    for (let c = 0; c <= 5; c++) {
+      aplicarEstilo(XLSX.utils.encode_cell({ r, c }), estiloCorpo);
     }
+  }
 
-    // Inicia o parser
-    container.childNodes.forEach(processarNode);
 
-    const doc = new docx.Document({
-      sections: [{ children }],
-    });
+  // -----------------------------------------
+  // 5) BORDAS EM TODA A PLANILHA
+  // -----------------------------------------
 
-    const blob = await docx.Packer.toBlob(doc);
-    const nomeArquivo = "documento-qa.docx";
+  const range = XLSX.utils.decode_range(ws["!ref"]);
 
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = nomeArquivo;
-    a.click();
+  for (let r = range.s.r; r <= range.e.r; r++) {
+    for (let c = range.s.c; c <= range.e.c; c++) {
+      const addr = XLSX.utils.encode_cell({ r, c });
+      if (!ws[addr]) continue;
 
-    adicionarAoHistorico("DOCX", nomeArquivo, blob);
-  });
-}
+      if (!ws[addr].s) ws[addr].s = {};
+
+      ws[addr].s.border = {
+        top:    { style: "thin" },
+        bottom: { style: "thin" },
+        left:   { style: "thin" },
+        right:  { style: "thin" }
+      };
+    }
+  }
+
+
+  // -----------------------------------------
+  // 6) LARGURA DAS COLUNAS
+  // -----------------------------------------
+
+  ws["!cols"] = [
+    { wch: 12 },  // Passo
+    { wch: 40 },  // Caminho
+    { wch: 100 }, // Descrição (bem larga)
+    { wch: 35 },
+    { wch: 10 },
+    { wch: 25 }
+  ];
+
+
+  // -----------------------------------------
+  // 7) GERAR O ARQUIVO EM BLOB + HISTÓRICO
+  // -----------------------------------------
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Planejamento");
+
+  const xlsxbinary = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+  const blob = new Blob([xlsxbinary], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+
+  // Download
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "planejamento_estilizado.xlsx";
+  a.click();
+
+  // Adicionar ao histórico
+  adicionarAoHistorico("XLSX", "planejamento_estilizado.xlsx", blob);
+
+});
+
 // =========================
 // EXPORTAR XLSX 
 // =========================
@@ -789,6 +786,7 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
 
 
 
