@@ -294,40 +294,38 @@ btnGerarXlsx.addEventListener("click", () => {
 
 
   // -----------------------------------------
-  // 7) GERAR O ARQUIVO EM BLOB + HISTÓRICO
-  // -----------------------------------------
+  / 7) GERAR O ARQUIVO (COMPATÍVEL COM SheetJS CDN)
+// =========================
 
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Planejamento");
+const wb = XLSX.utils.book_new();
+XLSX.utils.book_append_sheet(wb, ws, "Planejamento");
 
-  const xlsxbinary = XLSX.write(wb, { bookType: "xlsx", type: "array" });
-  const blob = new Blob([xlsxbinary], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+// 1) gerar em formato "binary string"
+const xlsxbinary = XLSX.write(wb, { bookType: "xlsx", type: "binary" });
 
-  // Download
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "planejamento_estilizado.xlsx";
-  a.click();
+// 2) converter binary string para ArrayBuffer
+function s2ab(s) {
+  const buf = new ArrayBuffer(s.length);
+  const view = new Uint8Array(buf);
+  for (let i = 0; i < s.length; i++) {
+    view[i] = s.charCodeAt(i) & 0xff;
+  }
+  return buf;
+}
 
-  // Adicionar ao histórico
-  adicionarAoHistorico("XLSX", "planejamento_estilizado.xlsx", blob);
-
+const blob = new Blob([s2ab(xlsxbinary)], {
+  type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 });
 
-// =========================
-// EXPORTAR XLSX 
-// =========================
-btnGerarXlsx.addEventListener("click", () => {
+// 3) download
+const url = URL.createObjectURL(blob);
+const a = document.createElement("a");
+a.href = url;
+a.download = "planejamento_estilizado.xlsx";
+a.click();
 
-  let textoBruto = editorCenarios.innerText.trim()
-    ? editorCenarios.innerText
-    : outputCenarios.value;
-
-  if (!textoBruto.trim()) {
-    alert("Nenhum cenário encontrado.");
-    return;
-  }
-
+// 4) salvar no histórico
+adicionarAoHistorico("XLSX", "planejamento_estilizado.xlsx", blob);
   // -----------------------------------------
   // CADA CENÁRIO = 1 LINHA
   // -----------------------------------------
