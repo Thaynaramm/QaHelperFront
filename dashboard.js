@@ -279,14 +279,21 @@ if (btnGerarDOCX) {
 
 btnGerarXlsx.addEventListener("click", () => {
 
-  let textoBase = editorCenarios.innerText.trim()
-    ? editorCenarios.innerText
-    : outputCenarios.value;
+let textoBruto = editorCenarios.innerText.trim()
+  ? editorCenarios.innerText
+  : outputCenarios.value;
 
-  if (!textoBase.trim()) {
-    alert("Nenhum cenário encontrado.");
-    return;
-  }
+// Agora aplicamos as quebras de linha no texto final
+let textoBase = textoBruto
+  .trim()
+  .replace(/Dado/g, "\nDado")
+  .replace(/Quando/g, "\nQuando")
+  .replace(/Então/g, "\nEntão");
+
+if (!textoBase.trim()) {
+  alert("Nenhum cenário encontrado.");
+  return;
+}
 
   // -----------------------------
   // MATRIZ COMPLETA DO ARQUIVO
@@ -710,6 +717,7 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
 
 
 
