@@ -277,12 +277,15 @@ if (btnGerarDOCX) {
 // EXPORTAR XLSX 
 // =========================
 
+// =========================
+// EXPORTAR XLSX – FORMATO COMPLETO IGUAL À SUA PLANILHA
+// =========================
+
 const btnGerarXlsx = document.getElementById("btnGerarXlsx");
 
 if (btnGerarXlsx) {
   btnGerarXlsx.addEventListener("click", () => {
 
-    // Caso tenha conteúdo no editor, usar ele. Se não, usar saída padrão.
     let textoBase = editorCenarios.innerText.trim()
       ? editorCenarios.innerText
       : outputCenarios.value;
@@ -292,114 +295,102 @@ if (btnGerarXlsx) {
       return;
     }
 
-    // ---------- MONTA A MATRIZ DE DADOS (AOA) ----------
+    // ---------- MONTA MATRIZ ----------
     const linhas = [
-      ["", "Roteiro de Teste HML", "", "", "", ""],
-      ["História:", "1900422", "Quantidade de Steps:", "1", "", ""],
-      ["Cenário de teste:", "CT01: Verificar status ofertas em Validação", "Status do Teste:", "Concluído", "", ""],
-      ["Pré Requisito:", "N/A", "", "", "", ""],
-      ["Data Execução:", new Date().toLocaleDateString(), "", "", "", ""],
-      [""],
-      ["Passo", "Caminho da ação", "Descrição dos Passos", "Resultado Esperado", "Resultado", "Responsável"]
+      ["", "Roteiro de Teste HML", "", "", "", ""],                      // 0
+      ["História:", "1900422", "Quantidade de Steps:", "1", "", ""],     // 1
+      ["Cenário de teste:", "CT01: Verificar status ofertas", "Status:", "Concluído", "", ""], // 2
+      ["Pré Requisito:", "N/A", "", "", "", ""],                         // 3
+      ["Data Execução:", new Date().toLocaleDateString(), "", "", "", ""], // 4
+      [""],                                                               // 5
+      ["Passo", "Caminho da ação", "Descrição dos Passos", "Resultado Esperado", "Resultado", "Responsável"], // 6
+      ["1", "https://sua-url.com", textoBase, "Resultado esperado automático", "OK", "Analista QA"], // 7
+      [""],                                                               // 8
+      ["", "Evidências", "", "", "", ""],                                 // 9
     ];
 
-    // Aqui insere automaticamente um passo na tabela
-    linhas.push([
-      "1",
-      "https://sua-url-ou-origem.com",
-      textoBase,
-      "Resultado esperado automático",
-      "OK",
-      "Analista QA"
-    ]);
-
-    linhas.push([""]);
-    linhas.push(["", "Evidências", "", "", "", ""]);
-
-    // ---------- CRIA A PLANILHA ----------
     const ws = XLSX.utils.aoa_to_sheet(linhas);
 
-    // Mesclagens
+    // ---------- MESCLAGENS ----------
     ws["!merges"] = [
-      { s: { r: 0, c: 0 }, e: { r: 0, c: 5 } }, // Cabeçalho
-      { s: { r: 10, c: 0 }, e: { r: 10, c: 5 } } // Evidências
+      { s: { r: 0, c: 0 }, e: { r: 0, c: 5 } }, // cabeçalho
+      { s: { r: 9, c: 0 }, e: { r: 9, c: 5 } }  // evidências
     ];
 
     // ---------- ESTILOS ----------
     const azul = "4F81BD";
     const azulClaro = "DBE5F1";
 
-    function estiloTitulo(cell) {
-      cell.s = {
-        font: { bold: true, color: { rgb: "FFFFFF" }, sz: 14 },
-        fill: { fgColor: { rgb: azul } },
-        alignment: { horizontal: "center", vertical: "center" }
-      };
+    const estiloTitulo = {
+      font: { bold: true, color: { rgb: "FFFFFF" }, sz: 14 },
+      fill: { fgColor: { rgb: azul } },
+      alignment: { horizontal: "center", vertical: "center" }
+    };
+
+    const estiloInfo = {
+      font: { bold: true },
+      fill: { fgColor: { rgb: azulClaro } },
+      alignment: { vertical: "center" },
+      border: {
+        top: { style: "thin" },
+        bottom: { style: "thin" },
+        left: { style: "thin" },
+        right: { style: "thin" }
+      }
+    };
+
+    const estiloCabecalhoTabela = {
+      font: { bold: true, color: { rgb: "FFFFFF" } },
+      fill: { fgColor: { rgb: azul } },
+      alignment: { horizontal: "center", vertical: "center", wrapText: true },
+      border: {
+        top: { style: "thin" },
+        bottom: { style: "thin" },
+        left: { style: "thin" },
+        right: { style: "thin" }
+      }
+    };
+
+    const estiloCorpo = {
+      alignment: { wrapText: true, vertical: "top" },
+      border: {
+        top: { style: "thin" },
+        bottom: { style: "thin" },
+        left: { style: "thin" },
+        right: { style: "thin" }
+      }
+    };
+
+    // ---------- APLICA ESTILOS ----------
+    function aplicarEstilo(celulaCoord, estilo) {
+      const cell = ws[celulaCoord];
+      if (cell) cell.s = estilo;
     }
 
-    function estiloInfo(cell) {
-      cell.s = {
-        font: { bold: true },
-        fill: { fgColor: { rgb: azulClaro } },
-        alignment: { vertical: "center" },
-        border: {
-          top: { style: "thin" },
-          bottom: { style: "thin" },
-          left: { style: "thin" },
-          right: { style: "thin" }
-        }
-      };
-    }
+    // título
+    aplicarEstilo("A1", estiloTitulo);
 
-    function estiloCabecalhoTabela(cell) {
-      cell.s = {
-        font: { bold: true, color: { rgb: "FFFFFF" } },
-        fill: { fgColor: { rgb: azul } },
-        alignment: { horizontal: "center", vertical: "center", wrapText: true },
-        border: {
-          top: { style: "thin" },
-          bottom: { style: "thin" },
-          left: { style: "thin" },
-          right: { style: "thin" }
-        }
-      };
-    }
+    // seção evidências
+    aplicarEstilo("A10", estiloTitulo);
 
-    function estiloCorpo(cell) {
-      cell.s = {
-        alignment: { wrapText: true, vertical: "top" },
-        border: {
-          top: { style: "thin" },
-          bottom: { style: "thin" },
-          left: { style: "thin" },
-          right: { style: "thin" }
-        }
-      };
-    }
-
-    // Aplica estilos
-    estiloTitulo(ws["A1"]);
-    const cellEvidencias = ws["A10"];
-        if (cellEvidencias) estiloTitulo(cellEvidencias);
-
+    // informações (linhas 2 a 5)
     for (let r = 1; r <= 4; r++) {
       for (let c = 0; c <= 5; c++) {
-        const cell = ws[XLSX.utils.encode_cell({ r, c })];
-        if (cell) estiloInfo(cell);
+        aplicarEstilo(XLSX.utils.encode_cell({ r, c }), estiloInfo);
       }
     }
 
+    // cabeçalho tabela
     for (let c = 0; c <= 5; c++) {
-      const cell = ws[XLSX.utils.encode_cell({ r: 6, c })];
-      if (cell) estiloCabecalhoTabela(cell);
+      aplicarEstilo(XLSX.utils.encode_cell({ r: 6, c }), estiloCabecalhoTabela);
     }
 
+    // corpo
     for (let c = 0; c <= 5; c++) {
-      const cell = ws[XLSX.utils.encode_cell({ r: 7, c })];
-      if (cell) estiloCorpo(cell);
+      aplicarEstilo(XLSX.utils.encode_cell({ r: 7, c }), estiloCorpo);
     }
 
-    // Largura das colunas
+    // larguras
     ws["!cols"] = [
       { wch: 8 },
       { wch: 40 },
@@ -409,12 +400,14 @@ if (btnGerarXlsx) {
       { wch: 20 }
     ];
 
+    // ---------- GERAR ARQUIVO ----------
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Planejamento");
 
     XLSX.writeFile(wb, "planejamento_estilizado.xlsx");
   });
 }
+
 // =========================
 // EDITOR DE IMAGEM COMPLETO
 // =========================
@@ -703,6 +696,7 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
 
 
 
