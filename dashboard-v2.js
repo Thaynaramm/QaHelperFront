@@ -180,70 +180,45 @@ function adicionarAoHistorico(tipo, nomeArquivo, blob) {
 
 if (btnGerarDOCX) {
   btnGerarDOCX.addEventListener("click", async () => {
-    if (!editorCenarios.innerText.trim()) {
-      alert("Editor vazio.");
-      return;
-    }
 
-    // FILTRA APENAS LINHAS DE CENÁRIOS
-    const linhasFiltradas = editorCenarios.innerText
+    // Filtra apenas cenários
+    const linhas = editorCenarios.innerText
       .split("\n")
-      .map(l => l.trim())
-      .filter(l =>
-        l.startsWith("Cenário:")
-        || l.startsWith("Dado")
-        || l.startsWith("Quando")
-        || l.startsWith("Então")
+      .map((l) => l.trim())
+      .filter((l) =>
+        l.startsWith("Cenário:") ||
+        l.startsWith("Dado") ||
+        l.startsWith("Quando") ||
+        l.startsWith("Então")
       );
 
-    // SE NÃO HOUVER LINHA VÁLIDA
-    if (linhasFiltradas.length === 0) {
-      alert("Nenhum cenário válido encontrado para exportar.");
+    if (linhas.length === 0) {
+      alert("Nenhum cenário válido para exportar.");
       return;
     }
-
-    const tituloStyle = {
-      font: "Calibri",
-      size: 28, // 14 pt
-      bold: true,
-    };
 
     const textoStyle = {
       font: "Calibri",
-      size: 24, // 12 pt
+      size: 24 // 12pt
     };
 
     const children = [];
 
-    // TÍTULO (APENAS O REQUISITO)
-    children.push(
-      new docx.Paragraph({
-        children: [
-          new docx.TextRun({
-            text: inputRequisito.value || "Documento QA",
-            ...tituloStyle,
-          }),
-        ],
-        spacing: { after: 300 },
-      })
-    );
-
-    // CENÁRIOS (SEM REQUISITO)
-    linhasFiltradas.forEach((linha) => {
+    // ------------------------
+    // APENAS CENÁRIOS
+    // ------------------------
+    linhas.forEach((linha) => {
       children.push(
         new docx.Paragraph({
-          children: [
-            new docx.TextRun({
-              text: linha,
-              ...textoStyle,
-            }),
-          ],
-          spacing: { after: 150 },
+          children: [new docx.TextRun({ text: linha, ...textoStyle })],
+          spacing: { after: 150 }
         })
       );
     });
 
-    // IMAGEM DO CANVAS (se existir)
+    // ------------------------
+    // IMAGEM (se houver)
+    // ------------------------
     if (canvas && canvas.width && canvas.height) {
       try {
         const dataUrl = canvas.toDataURL("image/png");
@@ -260,17 +235,21 @@ if (btnGerarDOCX) {
                 data: bytes,
                 transformation: {
                   width: canvas.width * scale,
-                  height: canvas.height * scale,
-                },
-              }),
-            ],
+                  height: canvas.height * scale
+                }
+              })
+            ]
           })
         );
+
       } catch (e) {
         console.error("Erro ao anexar imagem:", e);
       }
     }
 
+    // ------------------------
+    // GERA DOCUMENTO FINAL
+    // ------------------------
     const doc = new docx.Document({
       sections: [{ children }],
     });
@@ -700,6 +679,7 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
 
 
 
