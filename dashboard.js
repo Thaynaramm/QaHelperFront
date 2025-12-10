@@ -1,5 +1,5 @@
 // =========================
-// QA HELPER - DASHBOARD.JS (COMPLETO)
+// QA HELPER 
 // =========================
 
 // --------- THEME TOGGLE ---------
@@ -688,6 +688,7 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
 
 
 
