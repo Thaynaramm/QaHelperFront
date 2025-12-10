@@ -278,7 +278,6 @@ if (btnGerarDOCX) {
 // =========================
 btnGerarXlsx.addEventListener("click", () => {
 
-  // Captura o texto do editor
   let textoBruto = editorCenarios.innerText.trim()
     ? editorCenarios.innerText
     : outputCenarios.value;
@@ -289,11 +288,11 @@ btnGerarXlsx.addEventListener("click", () => {
   }
 
   // -----------------------------------------
-  // 1) UM CENÁRIO = UMA LINHA NO XLSX
+  // CADA CENÁRIO = 1 LINHA
   // -----------------------------------------
 
   let blocosDeCenario = textoBruto
-    .split(/\n\s*\n/)            // separa cenários por linha vazia
+    .split(/(?=Cenário:)/g)
     .map(b => b.trim())
     .filter(b => b.length > 0);
 
@@ -302,13 +301,12 @@ btnGerarXlsx.addEventListener("click", () => {
 
   blocosDeCenario.forEach(cenarioCompleto => {
 
-    // Junta todo o cenário em uma única célula com quebras de linha
     let descricaoUnica = cenarioCompleto.replace(/\n/g, "\n");
 
     passos.push([
-      passoNumero.toString(),       // número do passo
-      "https://sua-url.com",        // URL somente no passo, não repete
-      descricaoUnica,               // cenário inteiro na mesma célula
+      passoNumero.toString(),       // Passo
+      "https://sua-url.com",        // URL só aqui
+      descricaoUnica,               // CENÁRIO INTEIRO EM UMA ÚNICA CÉLULA
       "Resultado esperado automático",
       "OK",
       "Analista QA"
@@ -317,12 +315,11 @@ btnGerarXlsx.addEventListener("click", () => {
     passoNumero++;
   });
 
-
   // -----------------------------------------
-  // 2) MONTAR MATRIZ PRINCIPAL
+  // 2) MATRIZ PRINCIPAL
   // -----------------------------------------
   const linhas = [
-    ["", "Roteiro de Teste HML", "", "", "", ""],  
+    ["", "Roteiro de Teste HML", "", "", "", ""],
     ["História:", "1900422", "Quantidade de Steps:", passos.length, "", ""],
     ["Cenário de teste:", "Execução de múltiplos cenários", "Status:", "Concluído", "", ""],
     ["Pré Requisito:", "N/A", "", "", "", ""],
@@ -336,7 +333,6 @@ btnGerarXlsx.addEventListener("click", () => {
 
   const ws = XLSX.utils.aoa_to_sheet(linhas);
 
-
   // -----------------------------------------
   // 3) MERGES
   // -----------------------------------------
@@ -347,7 +343,6 @@ btnGerarXlsx.addEventListener("click", () => {
     { s: { r: 0, c: 0 }, e: { r: 0, c: 5 } }, 
     { s: { r: linhaEvidencias, c: 0 }, e: { r: linhaEvidencias, c: 5 } }
   ];
-
 
   // -----------------------------------------
   // 4) ESTILOS
@@ -750,6 +745,7 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
 
 
 
