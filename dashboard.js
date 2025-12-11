@@ -114,11 +114,8 @@ if (btnLimparEditor) {
   });
 }
 
-// =========================
-// =========================
-// =========================
 // EXPORTAR XLSX
-// =========================
+
 btnGerarXlsx.addEventListener("click", () => {
 
   // Captura o texto do editor
@@ -620,6 +617,7 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
 
 
 
