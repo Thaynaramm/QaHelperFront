@@ -431,61 +431,60 @@ const btnGerarDocx = document.getElementById("btnGerarDocx");
 if (btnGerarDocx) {
   btnGerarDocx.addEventListener("click", async () => {
 
-    // Capturar elementos do editor
-    const elementos = editorCenarios.childNodes;
+    let children = [];
 
-    if (!elementos.length) {
-      alert("O editor está vazio.");
-      return;
-    }
+    // Percorre TODOS os nós dentro do editor
+    editorCenarios.childNodes.forEach(node => {
 
-    let corpoDocumento = [];
+      // ============================
+      // 1. NÓ DE TEXTO / <div> / <p>
+      // ============================
+      if (node.nodeType === Node.ELEMENT_NODE) {
 
-    // -----------------------------------------------------
-    // PROCESSA TEXTO + IMAGENS DO EDITOR
-    // -----------------------------------------------------
-    for (let el of elementos) {
+        // Se o elemento contém um <img>, tratamos separadamente
+        const imgs = node.querySelectorAll("img");
+        if (imgs.length > 0) {
 
-      // TEXTO
-      if (el.nodeType === Node.ELEMENT_NODE && el.tagName === "DIV") {
-        const texto = el.innerText.trim();
-        if (texto !== "") {
-          corpoDocumento.push(
-            new docx.Paragraph({
-              text: texto,
-              spacing: { before: 200, after: 200 }
-            })
-          );
+          imgs.forEach(img => {
+            const base64 = img.src.split(",")[1];
+            const bytes = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
+
+            children.push(
+              new docx.Paragraph({
+                children: [
+                  new docx.ImageRun({
+                    data: bytes,
+                    transformation: {
+                      width: 550,
+                      height: 300
+                    }
+                  })
+                ],
+                alignment: docx.AlignmentType.CENTER,
+                spacing: { before: 200, after: 200 }
+              })
+            );
+          });
+
+        } else {
+          // Texto comum
+          const texto = node.innerText.trim();
+          if (texto !== "") {
+            children.push(
+              new docx.Paragraph({
+                text: texto,
+                spacing: { before: 200, after: 200 }
+              })
+            );
+          }
         }
       }
 
-      // IMAGEM
-      if (el.nodeType === Node.ELEMENT_NODE && el.tagName === "IMG") {
-        const base64 = el.src.split(",")[1];
+    });
 
-        // converte base64 em bytes
-        const bytes = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
-
-        corpoDocumento.push(
-          new docx.Paragraph({
-            children: [
-              new docx.ImageRun({
-                data: bytes,
-                transformation: {
-                  width: 550,   // ajuste conforme seu gosto
-                  height: 300
-                }
-              })
-            ],
-            spacing: { before: 200, after: 200 }
-          })
-        );
-      }
-    }
-
-    // -----------------------------------------------------
-    // CABEÇALHO ORIGINAL — mantido exatamente como o seu
-    // -----------------------------------------------------
+    // ============================
+    // CABEÇALHO (MANTIDO IGUAL AO SEU)
+    // ============================
 
     const cabecalho = new docx.Table({
       width: { size: 100, type: docx.WidthType.PERCENTAGE },
@@ -517,9 +516,9 @@ if (btnGerarDocx) {
       ]
     });
 
-    // -----------------------------------------------------
-    // MONTA DOCUMENTO FINAL
-    // -----------------------------------------------------
+    // ============================
+    // MONTAGEM FINAL DO DOC
+    // ============================
 
     const doc = new docx.Document({
       sections: [
@@ -531,14 +530,13 @@ if (btnGerarDocx) {
           },
           children: [
             cabecalho,
-            new docx.Paragraph({ text: "" }), // espaço
-            ...corpoDocumento
+            new docx.Paragraph(""),
+            ...children
           ]
         }
       ]
     });
 
-    // Gera arquivo
     const blob = await docx.Packer.toBlob(doc);
     saveAs(blob, "cenarios_qahelper.docx");
     adicionarAoHistorico("DOCX", "cenarios_qahelper.docx", blob);
@@ -835,6 +833,7 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
 
 
 
