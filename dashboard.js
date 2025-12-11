@@ -422,6 +422,66 @@ btnGerarXlsx.addEventListener("click", () => {
 });
 
 // =========================
+// GERAR ARQUIVO DOCX
+// =========================
+
+const btnGerarDocx = document.getElementById("btnGerarDocx");
+
+if (btnGerarDocx) {
+  btnGerarDocx.addEventListener("click", async () => {
+    
+    // 1) Pega o texto do editor ou dos cenários gerados
+    let textoBruto = editorCenarios.innerText.trim()
+      ? editorCenarios.innerText
+      : outputCenarios.value;
+
+    if (!textoBruto.trim()) {
+      alert("Nenhum cenário encontrado para gerar DOCX.");
+      return;
+    }
+
+    // 2) Separa cada linha para adicionar como parágrafos
+    const linhas = textoBruto.split("\n").map(l => l.trim());
+
+    // 3) Monta o documento DOCX
+    const doc = new docx.Document({
+      sections: [
+        {
+          properties: {},
+          children: [
+            new docx.Paragraph({
+              text: "Cenários de Teste - QA Helper",
+              heading: docx.HeadingLevel.HEADING_1,
+              alignment: docx.AlignmentType.CENTER
+            }),
+            new docx.Paragraph({ text: "" }),
+
+            ...linhas.map(linha =>
+              new docx.Paragraph({
+                text: linha,
+                spacing: { after: 120 }
+              })
+            )
+          ]
+        }
+      ]
+    });
+
+    // 4) Gerar o blob
+    const blob = await docx.Packer.toBlob(doc);
+
+    // 5) Baixar o arquivo
+    const nomeArquivo = "cenarios_qahelper.docx";
+    saveAs(blob, nomeArquivo);
+
+    // 6) HISTÓRICO
+    adicionarAoHistorico("DOCX", nomeArquivo, blob);
+
+    alert("DOCX gerado com sucesso!");
+  });
+}
+
+// =========================
 // EDITOR DE IMAGEM COMPLETO
 // =========================
 
@@ -709,6 +769,7 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
 
 
 
