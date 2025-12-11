@@ -113,7 +113,7 @@ if (btnLimparEditor) {
     editorCenarios.innerHTML = "";
   });
 }
-
+// =========================
 // HISTÓRICO (LOCALSTORAGE)
 // =========================
 
@@ -205,8 +205,9 @@ function adicionarAoHistorico(tipo, nomeArquivo, blob) {
 // Renderiza ao abrir a página
 renderizarHistorico();
 
+// =========================
 // EXPORTAR XLSX
-
+// =========================
 btnGerarXlsx.addEventListener("click", () => {
 
   // Captura o texto do editor
@@ -708,6 +709,7 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
 
 
 
