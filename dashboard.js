@@ -426,22 +426,69 @@ btnGerarXlsx.addEventListener("click", () => {
 // GERAR ARQUIVO DOCX
 // =========================
 
+// GERAR ARQUIVO DOCX
+// =========================
+
 const btnGerarDocx = document.getElementById("btnGerarDocx");
 
 if (btnGerarDocx) {
   btnGerarDocx.addEventListener("click", async () => {
 
-    let textoBruto = editorCenarios.innerText.trim()
-      ? editorCenarios.innerText
-      : outputCenarios.value;
+    // Pegamos o conteúdo DO EDITOR (não do textarea)
+    const elementos = editorCenarios.childNodes;
 
-    if (!textoBruto.trim()) {
-      alert("Nenhum cenário encontrado para gerar DOCX.");
+    if (!elementos.length) {
+      alert("O editor está vazio. Cole texto ou imagens antes de gerar.");
       return;
     }
 
-    const linhas = textoBruto.split("\n").map(l => l.trim());
+    let children = [];
 
+    for (let el of elementos) {
+
+      // ---------- TEXTO ----------
+      if (el.nodeType === Node.ELEMENT_NODE && el.tagName === "DIV") {
+        const texto = el.innerText.trim();
+        if (texto !== "") {
+          children.push(
+            new docx.Paragraph({
+              text: texto,
+              spacing: { before: 200, after: 200 }
+            })
+          );
+        }
+      }
+
+      // ---------- IMAGEM ----------
+      if (el.nodeType === Node.ELEMENT_NODE && el.tagName === "IMG") {
+        const base64 = el.src.split(",")[1]; // remove "data:image/png;base64,"
+
+        // converter base64 → array buffer
+        const byteCharacters = atob(base64);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+
+        children.push(
+          new docx.Paragraph({
+            children: [
+              new docx.ImageRun({
+                data: byteArray,
+                transformation: {
+                  width: 600,     // ajuste a largura da imagem no DOCX
+                  height: 350
+                }
+              })
+            ],
+            spacing: { before: 200, after: 200 }
+          })
+        );
+      }
+    }
+
+    // MONTA O DOCUMENTO FINAL
     const doc = new docx.Document({
       sections: [
         {
@@ -450,49 +497,7 @@ if (btnGerarDocx) {
               margin: { top: 200, right: 800, bottom: 800, left: 800 }
             }
           },
-          children: [
-
-            // ===== CABEÇALHO =====
-            new docx.Table({
-              width: { size: 100, type: docx.WidthType.PERCENTAGE },
-              rows: [
-                new docx.TableRow({
-                  children: [
-                    new docx.TableCell({
-                      columnSpan: 6,
-                      children: [
-                        new docx.Paragraph({
-                          text: "Roteiro de Teste - QA Helper",
-                          heading: docx.HeadingLevel.HEADING_1,
-                          alignment: docx.AlignmentType.CENTER
-                        })
-                      ]
-                    })
-                  ]
-                }),
-                new docx.TableRow({
-                  children: [
-                    new docx.TableCell({ children: [new docx.Paragraph("História:")] }),
-                    new docx.TableCell({ children: [new docx.Paragraph("1900422")] }),
-                    new docx.TableCell({ children: [new docx.Paragraph("Quantidade de Steps:")] }),
-                    new docx.TableCell({ children: [new docx.Paragraph("Automático")] }),
-                    new docx.TableCell({ children: [new docx.Paragraph("")] }),
-                    new docx.TableCell({ children: [new docx.Paragraph("")] })
-                  ]
-                })
-              ]
-            }),
-
-            new docx.Paragraph({ text: "" }),
-
-            // ===== CENÁRIOS =====
-            ...linhas.map(linha =>
-              new docx.Paragraph({
-                text: linha,
-                spacing: { before: 200, after: 300 }
-              })
-            )
-          ]
+          children
         }
       ]
     });
@@ -505,7 +510,6 @@ if (btnGerarDocx) {
   });
 }
 
-    
 // =========================
 // EDITOR DE IMAGEM COMPLETO
 // =========================
@@ -794,6 +798,7 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
 
 
 
