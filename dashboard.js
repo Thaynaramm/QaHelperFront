@@ -423,10 +423,6 @@ btnGerarXlsx.addEventListener("click", () => {
 
 });
 
-// =========================
-// GERAR ARQUIVO DOCX
-// =========================
-
 // GERAR ARQUIVO DOCX
 // =========================
 
@@ -509,20 +505,7 @@ if (btnGerarDocx) {
   });
 }
 
-    // 4) Gerar o blob
-    const blob = await docx.Packer.toBlob(doc);
-
-    // 5) Baixar o arquivo
-    const nomeArquivo = "cenarios_qahelper.docx";
-    saveAs(blob, nomeArquivo);
-
-    // 6) HISTÓRICO
-    adicionarAoHistorico("DOCX", nomeArquivo, blob);
-
-    alert("DOCX gerado com sucesso!");
-  });
-}
-
+    
 // =========================
 // EDITOR DE IMAGEM COMPLETO
 // =========================
@@ -811,6 +794,7 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
 
 
 
