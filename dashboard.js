@@ -425,12 +425,14 @@ btnGerarXlsx.addEventListener("click", () => {
 // GERAR ARQUIVO DOCX
 // =========================
 
+// GERAR ARQUIVO DOCX
+// =========================
+
 const btnGerarDocx = document.getElementById("btnGerarDocx");
 
 if (btnGerarDocx) {
   btnGerarDocx.addEventListener("click", async () => {
-    
-    // 1) Pega o texto do editor ou dos cenários gerados
+
     let textoBruto = editorCenarios.innerText.trim()
       ? editorCenarios.innerText
       : outputCenarios.value;
@@ -440,84 +442,52 @@ if (btnGerarDocx) {
       return;
     }
 
-    // 2) Separa cada linha para adicionar como parágrafos
     const linhas = textoBruto.split("\n").map(l => l.trim());
 
-    // 3) Monta o documento DOCX
     const doc = new docx.Document({
-     sections: [
+      sections: [
         {
-         properties: {
-           page: {
-            margin: { top: 200, right: 800, bottom: 800, left: 800 }
-          }
-         },
-         children: [
-           
- // ====== CABEÇALHO ======
-new docx.Table({
-  width: { size: 100, type: docx.WidthType.PERCENTAGE },
-  rows: [
-    new docx.TableRow({
-      children: [
-        new docx.TableCell({
-          columnSpan: 6,
+          properties: {
+            page: {
+              margin: { top: 200, right: 800, bottom: 800, left: 800 }
+            }
+          },
           children: [
-            new docx.Paragraph({
-              text: "Roteiro de Teste - QA Helper",
-              heading: docx.HeadingLevel.HEADING_1,
-              alignment: docx.AlignmentType.CENTER
-            })
-          ]
-        })
-      ]
-    }),
 
-    new docx.TableRow({
-      children: [
-        new docx.TableCell({ children: [ new docx.Paragraph("História:") ] }),
-        new docx.TableCell({ children: [ new docx.Paragraph("1900422") ] }),
-        new docx.TableCell({ children: [ new docx.Paragraph("Quantidade de Steps:") ] }),
-        new docx.TableCell({ children: [ new docx.Paragraph("Automático") ] }),
-        new docx.TableCell({ children: [ new docx.Paragraph("") ] }),
-        new docx.TableCell({ children: [ new docx.Paragraph("") ] })
-      ]
-    }),
+            // ===== CABEÇALHO =====
+            new docx.Table({
+              width: { size: 100, type: docx.WidthType.PERCENTAGE },
+              rows: [
+                new docx.TableRow({
+                  children: [
+                    new docx.TableCell({
+                      columnSpan: 6,
+                      children: [
+                        new docx.Paragraph({
+                          text: "Roteiro de Teste - QA Helper",
+                          heading: docx.HeadingLevel.HEADING_1,
+                          alignment: docx.AlignmentType.CENTER
+                        })
+                      ]
+                    })
+                  ]
+                }),
+                new docx.TableRow({
+                  children: [
+                    new docx.TableCell({ children: [new docx.Paragraph("História:")] }),
+                    new docx.TableCell({ children: [new docx.Paragraph("1900422")] }),
+                    new docx.TableCell({ children: [new docx.Paragraph("Quantidade de Steps:")] }),
+                    new docx.TableCell({ children: [new docx.Paragraph("Automático")] }),
+                    new docx.TableCell({ children: [new docx.Paragraph("")] }),
+                    new docx.TableCell({ children: [new docx.Paragraph("")] })
+                  ]
+                })
+              ]
+            }),
 
-    new docx.TableRow({
-      children: [
-        new docx.TableCell({ children: [ new docx.Paragraph("Cenário de Teste:") ] }),
-        new docx.TableCell({ children: [ new docx.Paragraph("Execução dos Cenários") ] }),
-        new docx.TableCell({ children: [ new docx.Paragraph("Status:") ] }),
-        new docx.TableCell({ children: [ new docx.Paragraph("Concluído") ] }),
-        new docx.TableCell({ children: [ new docx.Paragraph("") ] }),
-        new docx.TableCell({ children: [ new docx.Paragraph("") ] })
-      ]
-    }),
+            new docx.Paragraph({ text: "" }),
 
-    new docx.TableRow({
-      children: [
-        new docx.TableCell({ children: [ new docx.Paragraph("Pré-requisito:") ] }),
-        new docx.TableCell({ children: [ new docx.Paragraph("N/A") ] }),
-        new docx.TableCell({ children: [ new docx.Paragraph("") ] }),
-        new docx.TableCell({ children: [ new docx.Paragraph("") ] }),
-        new docx.TableCell({ children: [ new docx.Paragraph("") ] }),
-        new docx.TableCell({ children: [ new docx.Paragraph("") ] })
-      ]
-    }),
-
-    new docx.TableRow({
-      children: [
-        new docx.TableCell({ children: [ new docx.Paragraph("Data Execução:") ] }),
-        new docx.TableCell({ children: [ new docx.Paragraph(new Date().toLocaleDateString()) ] }),
-        new docx.TableCell({ children: [ new docx.Paragraph("") ] }),
-        new docx.TableCell({ children: [ new docx.Paragraph("") ] }),
-        new docx.TableCell({ children: [ new docx.Paragraph("") ] }),
-        new docx.TableCell({ children: [ new docx.Paragraph("") ] })
-      ]
-    })
-  ]
-}),
+            // ===== CENÁRIOS =====
             ...linhas.map(linha =>
               new docx.Paragraph({
                 text: linha,
@@ -528,6 +498,14 @@ new docx.Table({
         }
       ]
     });
+
+    const blob = await docx.Packer.toBlob(doc);
+    saveAs(blob, "cenarios_qahelper.docx");
+    adicionarAoHistorico("DOCX", "cenarios_qahelper.docx", blob);
+
+    alert("DOCX gerado com sucesso!");
+  });
+}
 
     // 4) Gerar o blob
     const blob = await docx.Packer.toBlob(doc);
@@ -831,6 +809,7 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
 
 
 
