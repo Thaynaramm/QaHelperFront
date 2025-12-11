@@ -116,6 +116,7 @@ if (btnLimparEditor) {
 
 // =========================
 // =========================
+// =========================
 // EXPORTAR XLSX
 // =========================
 btnGerarXlsx.addEventListener("click", () => {
@@ -172,7 +173,7 @@ btnGerarXlsx.addEventListener("click", () => {
     ["Data Execução:", new Date().toLocaleDateString(), "", "", "", ""],
     [""],
     ["Passo", "Caminho da ação", "Descrição dos Passos", "Resultado Esperado", "Resultado", "Responsável"],
-    ...passos,           // ← cada cenário vira 1 linha
+    ...passos,
     [""],
     ["", "Evidências", "", "", "", ""],
   ];
@@ -284,9 +285,9 @@ btnGerarXlsx.addEventListener("click", () => {
   // -----------------------------------------
 
   ws["!cols"] = [
-    { wch: 12 },  // Passo
-    { wch: 40 },  // Caminho
-    { wch: 100 }, // Descrição (bem larga)
+    { wch: 12 },
+    { wch: 40 },
+    { wch: 100 },
     { wch: 35 },
     { wch: 10 },
     { wch: 25 }
@@ -294,207 +295,42 @@ btnGerarXlsx.addEventListener("click", () => {
 
 
   // -----------------------------------------
-  / 7) GERAR O ARQUIVO (COMPATÍVEL COM SheetJS CDN)
-// =========================
-
-const wb = XLSX.utils.book_new();
-XLSX.utils.book_append_sheet(wb, ws, "Planejamento");
-
-// 1) gerar em formato "binary string"
-const xlsxbinary = XLSX.write(wb, { bookType: "xlsx", type: "binary" });
-
-// 2) converter binary string para ArrayBuffer
-function s2ab(s) {
-  const buf = new ArrayBuffer(s.length);
-  const view = new Uint8Array(buf);
-  for (let i = 0; i < s.length; i++) {
-    view[i] = s.charCodeAt(i) & 0xff;
-  }
-  return buf;
-}
-
-const blob = new Blob([s2ab(xlsxbinary)], {
-  type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-});
-
-// 3) download
-const url = URL.createObjectURL(blob);
-const a = document.createElement("a");
-a.href = url;
-a.download = "planejamento_estilizado.xlsx";
-a.click();
-
-// 4) salvar no histórico
-adicionarAoHistorico("XLSX", "planejamento_estilizado.xlsx", blob);
-  // -----------------------------------------
-  // CADA CENÁRIO = 1 LINHA
-  // -----------------------------------------
-
-  let blocosDeCenario = textoBruto
-    .split(/(?=Cenário:)/g)
-    .map(b => b.trim())
-    .filter(b => b.length > 0);
-
-  let passos = [];
-  let passoNumero = 1;
-
-  blocosDeCenario.forEach(cenarioCompleto => {
-
-    let descricaoUnica = cenarioCompleto.replace(/\n/g, "\n");
-
-    passos.push([
-      passoNumero.toString(),       // Passo
-      "https://sua-url.com",        // URL só aqui
-      descricaoUnica,               // CENÁRIO INTEIRO EM UMA ÚNICA CÉLULA
-      "Resultado esperado automático",
-      "OK",
-      "Analista QA"
-    ]);
-
-    passoNumero++;
-  });
-
-  // -----------------------------------------
-  // 2) MATRIZ PRINCIPAL
-  // -----------------------------------------
-  const linhas = [
-    ["", "Roteiro de Teste HML", "", "", "", ""],
-    ["História:", "1900422", "Quantidade de Steps:", passos.length, "", ""],
-    ["Cenário de teste:", "Execução de múltiplos cenários", "Status:", "Concluído", "", ""],
-    ["Pré Requisito:", "N/A", "", "", "", ""],
-    ["Data Execução:", new Date().toLocaleDateString(), "", "", "", ""],
-    [""],
-    ["Passo", "Caminho da ação", "Descrição dos Passos", "Resultado Esperado", "Resultado", "Responsável"],
-    ...passos,
-    [""],
-    ["", "Evidências", "", "", "", ""],
-  ];
-
-  const ws = XLSX.utils.aoa_to_sheet(linhas);
-
-  // -----------------------------------------
-  // 3) MERGES
-  // -----------------------------------------
-
-  const linhaEvidencias = 7 + passos.length + 1;
-
-  ws["!merges"] = [
-    { s: { r: 0, c: 0 }, e: { r: 0, c: 5 } }, 
-    { s: { r: linhaEvidencias, c: 0 }, e: { r: linhaEvidencias, c: 5 } }
-  ];
-
-  // -----------------------------------------
-  // 4) ESTILOS
-  // -----------------------------------------
-
-  const azul = "4F81BD";
-  const azulClaro = "DBE5F1";
-  const amarelo = "FFF2CC";
-
-  const estiloTitulo = {
-    font: { bold: true, color: { rgb: "FFFFFF" }, sz: 14 },
-    fill: { fgColor: { rgb: azul } },
-    alignment: { horizontal: "center", vertical: "center" }
-  };
-
-  const estiloInfo = {
-    font: { bold: true },
-    fill: { fgColor: { rgb: azulClaro } },
-    alignment: { vertical: "center" }
-  };
-
-  const estiloCabecalhoAmarelo = {
-    font: { bold: true },
-    fill: { fgColor: { rgb: amarelo } },
-    alignment: { horizontal: "center", vertical: "center", wrapText: true }
-  };
-
-  const estiloCorpo = {
-    alignment: { wrapText: true, vertical: "top" }
-  };
-
-  function aplicarEstilo(celula, estilo) {
-    if (!ws[celula]) return;
-    ws[celula].s = { ...ws[celula].s, ...estilo };
-  }
-
-  // Título
-  aplicarEstilo("A1", estiloTitulo);
-
-  // Evidências
-  aplicarEstilo("A" + (linhaEvidencias + 1), estiloTitulo);
-
-  // Linhas 2–5 → azul claro
-  for (let r = 1; r <= 4; r++) {
-    for (let c = 0; c <= 5; c++) {
-      aplicarEstilo(XLSX.utils.encode_cell({ r, c }), estiloInfo);
-    }
-  }
-
-  // Linha 7 → cabeçalho amarelo
-  for (let c = 0; c <= 5; c++) {
-    aplicarEstilo(XLSX.utils.encode_cell({ r: 6, c }), estiloCabecalhoAmarelo);
-  }
-
-  // Corpo (as linhas dos passos)
-  let corpoInicio = 7;
-  let corpoFim = 7 + passos.length - 1;
-
-  for (let r = corpoInicio; r <= corpoFim; r++) {
-    for (let c = 0; c <= 5; c++) {
-      aplicarEstilo(XLSX.utils.encode_cell({ r, c }), estiloCorpo);
-    }
-  }
-
-
-  // -----------------------------------------
-  // 5) BORDAS EM TODA A PLANILHA
-  // -----------------------------------------
-
-  const range = XLSX.utils.decode_range(ws["!ref"]);
-
-  for (let r = range.s.r; r <= range.e.r; r++) {
-    for (let c = range.s.c; c <= range.e.c; c++) {
-
-      const addr = XLSX.utils.encode_cell({ r, c });
-      if (!ws[addr]) continue;
-
-      if (!ws[addr].s) ws[addr].s = {};
-
-      ws[addr].s.border = {
-        top:    { style: "thin" },
-        bottom: { style: "thin" },
-        left:   { style: "thin" },
-        right:  { style: "thin" }
-      };
-    }
-  }
-
-
-  // -----------------------------------------
-  // 6) LARGURA DAS COLUNAS
-  // -----------------------------------------
-
-  ws["!cols"] = [
-    { wch: 12 }, // Passo
-    { wch: 40 }, // Caminho
-    { wch: 100 }, // Descrição (bem larga)
-    { wch: 35 }, 
-    { wch: 10 }, 
-    { wch: 25 }
-  ];
-
-
-  // -----------------------------------------
-  // 7) GERAR ARQUIVO
+  // 7) GERAR XLSX + DOWNLOAD + HISTÓRICO
   // -----------------------------------------
 
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Planejamento");
 
-  XLSX.writeFile(wb, "planejamento_estilizado.xlsx");
-});
+  // Gerar XLSX em binário
+  const xlsxbinary = XLSX.write(wb, { bookType: "xlsx", type: "binary" });
 
+  // Converter para ArrayBuffer
+  function s2ab(s) {
+    const buf = new ArrayBuffer(s.length);
+    const view = new Uint8Array(buf);
+    for (let i = 0; i < s.length; i++) {
+      view[i] = s.charCodeAt(i) & 0xff;
+    }
+    return buf;
+  }
+
+  const blob = new Blob([s2ab(xlsxbinary)], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+  });
+
+  // DOWNLOAD
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "planejamento_estilizado.xlsx";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+
+  // HISTÓRICO
+  adicionarAoHistorico("XLSX", "planejamento_estilizado.xlsx", blob);
+
+});
 
 // =========================
 // EDITOR DE IMAGEM COMPLETO
@@ -784,6 +620,7 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
 
 
 
