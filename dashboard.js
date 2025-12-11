@@ -169,11 +169,11 @@ function renderizarHistorico() {
     `;
 
     // download
-    div.querySelector(".btn-download").addEventListener("click", () => {
-      const a = document.createElement("a");
-      a.href = item.url;
-      a.download = item.nome;
-      a.click();
+  div.querySelector(".btn-download").addEventListener("click", () => {
+    const a = document.createElement("a");
+    a.href = item.base64;   // agora baixa sempre
+    a.download = item.nome;
+    a.click();
     });
 
     // excluir
@@ -811,6 +811,7 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
 
 
 
