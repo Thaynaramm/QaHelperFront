@@ -114,6 +114,97 @@ if (btnLimparEditor) {
   });
 }
 
+// HISTÓRICO (LOCALSTORAGE)
+// =========================
+
+const historicoLista = document.getElementById("historicoLista");
+
+// Carregar do localStorage
+function carregarHistorico() {
+  const salvo = localStorage.getItem("qahelper_historico");
+  return salvo ? JSON.parse(salvo) : [];
+}
+
+// Salvar no localStorage
+function salvarHistorico() {
+  localStorage.setItem("qahelper_historico", JSON.stringify(historico));
+}
+
+// Lista em memória
+let historico = carregarHistorico();
+
+// Renderizar histórico na interface
+function renderizarHistorico() {
+  historicoLista.innerHTML = "";
+
+  if (historico.length === 0) {
+    historicoLista.innerHTML = `
+      <div class="historico-item historico-item-vazio">
+        <div class="historico-titulo">Nenhum arquivo gerado ainda</div>
+        <div class="historico-meta">
+          <span class="historico-data">Gere algo para preencher o histórico.</span>
+        </div>
+      </div>`;
+    return;
+  }
+
+  historico.forEach((item, index) => {
+    const div = document.createElement("div");
+    div.className = "historico-item";
+
+    div.innerHTML = `
+      <div class="historico-item-header">
+        <div class="historico-titulo">${item.nome}</div>
+        <span class="historico-tipo">${item.tipo}</span>
+      </div>
+
+      <div class="historico-meta">
+        <span class="historico-data">Gerado em ${item.data}</span>
+
+        <div class="historico-actions">
+          <button class="btn btn-outline btn-download">Baixar</button>
+          <button class="btn btn-outline btn-delete">Excluir</button>
+        </div>
+      </div>
+    `;
+
+    // download
+    div.querySelector(".btn-download").addEventListener("click", () => {
+      const a = document.createElement("a");
+      a.href = item.url;
+      a.download = item.nome;
+      a.click();
+    });
+
+    // excluir
+    div.querySelector(".btn-delete").addEventListener("click", () => {
+      historico.splice(index, 1);
+      salvarHistorico();
+      renderizarHistorico();
+    });
+
+    historicoLista.appendChild(div);
+  });
+}
+
+// Adicionar item novo ao histórico
+function adicionarAoHistorico(tipo, nomeArquivo, blob) {
+  const url = URL.createObjectURL(blob);
+
+  historico.push({
+    tipo,
+    nome: nomeArquivo,
+    url,
+    data: new Date().toLocaleString()
+  });
+
+  salvarHistorico();
+  renderizarHistorico();
+}
+
+// Renderiza ao abrir a página
+renderizarHistorico();
+
 // EXPORTAR XLSX
 
 btnGerarXlsx.addEventListener("click", () => {
@@ -617,6 +708,7 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
 
 
 
