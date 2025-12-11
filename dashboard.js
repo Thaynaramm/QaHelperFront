@@ -189,21 +189,23 @@ function renderizarHistorico() {
 
 // Adicionar item novo ao histórico
 function adicionarAoHistorico(tipo, nomeArquivo, blob) {
-  const url = URL.createObjectURL(blob);
 
-  historico.push({
-    tipo,
-    nome: nomeArquivo,
-    url,
-    data: new Date().toLocaleString()
-  });
+  const reader = new FileReader();
 
-  salvarHistorico();
-  renderizarHistorico();
+  reader.onload = function() {
+    historico.push({
+      tipo,
+      nome: nomeArquivo,
+      data: new Date().toLocaleString(),
+      base64: reader.result  // arquivo salvo de forma permanente
+    });
+
+    salvarHistorico();
+    renderizarHistorico();
+  };
+
+  reader.readAsDataURL(blob);
 }
-
-// Renderiza ao abrir a página
-renderizarHistorico();
 
 // =========================
 // EXPORTAR XLSX
@@ -809,6 +811,7 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
 
 
 
