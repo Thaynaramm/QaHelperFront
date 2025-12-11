@@ -445,21 +445,83 @@ if (btnGerarDocx) {
 
     // 3) Monta o documento DOCX
     const doc = new docx.Document({
-      sections: [
+     sections: [
         {
-          properties: {},
+         properties: {
+           page: {
+            margin: { top: 200, right: 800, bottom: 800, left: 800 }
+          }
+         },
+         children: [
+           
+ // ====== CABEÇALHO ======
+new docx.Table({
+  width: { size: 100, type: docx.WidthType.PERCENTAGE },
+  rows: [
+    new docx.TableRow({
+      children: [
+        new docx.TableCell({
+          columnSpan: 6,
           children: [
             new docx.Paragraph({
-              text: "Cenários de Teste - QA Helper",
+              text: "Roteiro de Teste - QA Helper",
               heading: docx.HeadingLevel.HEADING_1,
               alignment: docx.AlignmentType.CENTER
-            }),
-            new docx.Paragraph({ text: "" }),
+            })
+          ]
+        })
+      ]
+    }),
 
+    new docx.TableRow({
+      children: [
+        new docx.TableCell({ children: [ new docx.Paragraph("História:") ] }),
+        new docx.TableCell({ children: [ new docx.Paragraph("1900422") ] }),
+        new docx.TableCell({ children: [ new docx.Paragraph("Quantidade de Steps:") ] }),
+        new docx.TableCell({ children: [ new docx.Paragraph("Automático") ] }),
+        new docx.TableCell({ children: [ new docx.Paragraph("") ] }),
+        new docx.TableCell({ children: [ new docx.Paragraph("") ] })
+      ]
+    }),
+
+    new docx.TableRow({
+      children: [
+        new docx.TableCell({ children: [ new docx.Paragraph("Cenário de Teste:") ] }),
+        new docx.TableCell({ children: [ new docx.Paragraph("Execução dos Cenários") ] }),
+        new docx.TableCell({ children: [ new docx.Paragraph("Status:") ] }),
+        new docx.TableCell({ children: [ new docx.Paragraph("Concluído") ] }),
+        new docx.TableCell({ children: [ new docx.Paragraph("") ] }),
+        new docx.TableCell({ children: [ new docx.Paragraph("") ] })
+      ]
+    }),
+
+    new docx.TableRow({
+      children: [
+        new docx.TableCell({ children: [ new docx.Paragraph("Pré-requisito:") ] }),
+        new docx.TableCell({ children: [ new docx.Paragraph("N/A") ] }),
+        new docx.TableCell({ children: [ new docx.Paragraph("") ] }),
+        new docx.TableCell({ children: [ new docx.Paragraph("") ] }),
+        new docx.TableCell({ children: [ new docx.Paragraph("") ] }),
+        new docx.TableCell({ children: [ new docx.Paragraph("") ] })
+      ]
+    }),
+
+    new docx.TableRow({
+      children: [
+        new docx.TableCell({ children: [ new docx.Paragraph("Data Execução:") ] }),
+        new docx.TableCell({ children: [ new docx.Paragraph(new Date().toLocaleDateString()) ] }),
+        new docx.TableCell({ children: [ new docx.Paragraph("") ] }),
+        new docx.TableCell({ children: [ new docx.Paragraph("") ] }),
+        new docx.TableCell({ children: [ new docx.Paragraph("") ] }),
+        new docx.TableCell({ children: [ new docx.Paragraph("") ] })
+      ]
+    })
+  ]
+}),
             ...linhas.map(linha =>
               new docx.Paragraph({
                 text: linha,
-                spacing: { after: 120 }
+                spacing: { before: 200, after: 300 }
               })
             )
           ]
@@ -769,6 +831,7 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
 
 
 
