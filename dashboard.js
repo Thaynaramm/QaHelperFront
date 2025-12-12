@@ -38,39 +38,29 @@ const editorCenarios = document.getElementById("editorCenarios");
 
 // CENÁRIOS FIXOS
 function gerarCenariosGherkin(descricao) {
-  if (!descricao.trim()) return "Informe uma descrição de requisito.";
+  if (!descricao.trim()) {
+    return "Informe uma descrição de requisito.";
+  }
 
-  return `
-Cenário: Fluxo de sucesso
+  // 1) Quebra o requisito em frases
+  const frases = descricao
+    .split(/\n|\.|;/)
+    .map(f => f.trim())
+    .filter(f => f.length > 5);
+
+  // 2) Gera cenários a partir de cada frase
+  let resultado = "";
+
+  frases.forEach((frase, index) => {
+    resultado += `
+Cenário ${index + 1}: ${frase}
   Dado que o usuário acessa a funcionalidade
-  Quando realiza o fluxo principal corretamente
-  Então o sistema deve concluir a ação com sucesso
+  Quando ${frase.toLowerCase()}
+  Então o sistema deve atender ao requisito
+`;
+  });
 
-Cenário: Dados inválidos
-  Dado que o usuário acessa a funcionalidade
-  Quando informa dados inválidos
-  Então o sistema deve exibir mensagem de erro
-
-Cenário: Regra de negócio violada
-  Dado que existe uma regra de negócio
-  Quando o usuário tenta violar essa regra
-  Então o sistema bloqueia a ação
-
-Cenário: Campos obrigatórios não preenchidos
-  Dado que o usuário acessa a funcionalidade
-  Quando deixa campos obrigatórios vazios
-  Então o sistema deve alertar sobre o preenchimento obrigatório
-
-Cenário: Tempo de resposta excedido
-  Dado que o sistema está processando uma requisição
-  Quando o tempo limite é ultrapassado
-  Então o sistema deve exibir mensagem de indisponibilidade
-
-Cenário: Permissão insuficiente
-  Dado que o usuário não possui permissão
-  Quando tenta acessar a funcionalidade
-  Então o sistema deve negar o acesso
-`.trim();
+  return resultado.trim();
 }
 
 // BOTÃO GERAR
@@ -833,6 +823,7 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
 
 
 
