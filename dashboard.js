@@ -28,127 +28,89 @@ if (themeToggleBtn) {
 // =========================
 // GERADOR DE CENÁRIOS
 // =========================
- ================================
-   1. CLASSIFICAÇÃO DO CRITÉRIO
-================================ */
+// =========================
+// GERADOR DE CENÁRIOS (CORRIGIDO)
+// =========================
 
+// 1. CLASSIFICAÇÃO DO CRITÉRIO
 function classificarCriterio(criterio) {
   const texto = criterio.toLowerCase();
 
-  if (texto.includes("sucesso") || texto.includes("permitir")) {
-    return "SUCESSO";
-  }
+  if (texto.includes("sucesso") || texto.includes("permitir")) return "SUCESSO";
+  if (texto.includes("inválida") || texto.includes("negar")) return "ERRO_NEGOCIO";
+  if (texto.includes("vazios") || texto.includes("obrigatórios")) return "VALIDACAO";
+  if (texto.includes("tempo de resposta") || texto.includes("segundos")) return "NAO_FUNCIONAL";
+  if (texto.includes("disponível") || texto.includes("ambiente")) return "AMBIENTE";
 
-  if (texto.includes("inválida") || texto.includes("negar")) {
-    return "ERRO_NEGOCIO";
-  }
-
-  if (texto.includes("vazios") || texto.includes("obrigatórios")) {
-    return "VALIDACAO";
-  }
-
-  if (texto.includes("tempo de resposta") || texto.includes("segundos")) {
-    return "NAO_FUNCIONAL";
-  }
-
-  if (texto.includes("disponível") || texto.includes("ambiente")) {
-    return "AMBIENTE";
-  }
-
-  return "OUTRO";
+  return null;
 }
 
-/* ================================
-   2. TEMPLATES DE CENÁRIO
-================================ */
-
+// 2. TEMPLATE
 function gerarCenario(tipo, descricao, id) {
-  const templates = {
+  const map = {
     SUCESSO: `
-CT${id}: ${descricao}
+Cenário: CT${id} - ${descricao}
 Dado que o usuário informe e-mail e senha válidos
 Quando solicitar o login
 Então o sistema deve permitir o acesso
 `,
-
     ERRO_NEGOCIO: `
-CT${id}: ${descricao}
+Cenário: CT${id} - ${descricao}
 Dado que o usuário informe senha inválida
 Quando tentar autenticar
 Então o sistema deve negar o acesso e exibir mensagem de erro
 `,
-
     VALIDACAO: `
-CT${id}: ${descricao}
+Cenário: CT${id} - ${descricao}
 Dado que o usuário informe campos obrigatórios vazios
 Quando tentar autenticar
 Então o sistema deve impedir o envio do formulário
 `,
-
     NAO_FUNCIONAL: `
-CT${id}: ${descricao}
+Cenário: CT${id} - ${descricao}
 Dado que o usuário informe e-mail e senha válidos
 Quando solicitar o login
-Então o tempo de resposta da autenticação não deve ultrapassar 3 segundos
+Então o tempo de resposta não deve ultrapassar 3 segundos
 `,
-
     AMBIENTE: `
-CT${id}: ${descricao}
+Cenário: CT${id} - ${descricao}
 Dado que o usuário esteja no ambiente de homologação
 Quando tentar acessar o sistema
 Então o sistema deve estar disponível
 `
   };
 
-  return templates[tipo] ? templates[tipo].trim() : null;
+  return map[tipo]?.trim() || "";
 }
 
-/* ================================
-   3. FUNÇÃO PRINCIPAL (ÚNICA)
-================================ */
+// 3. FUNÇÃO PRINCIPAL
+function gerarCasosDeTeste(textoBruto) {
+  if (!textoBruto.trim()) return "";
 
-function gerarCasosDeTeste(criteriosAceitacao) {
-  if (!Array.isArray(criteriosAceitacao) || criteriosAceitacao.length === 0) {
-    return "Erro: Nenhum critério de aceitação informado.";
-  }
+  // quebra linhas → array
+  const criterios = textoBruto
+    .split("\n")
+    .map(l => l.trim())
+    .filter(l => l.length > 0);
 
-  let contador = 1;
-  const cenarios = [];
+  let id = 1;
+  const saida = [];
 
-  criteriosAceitacao.forEach(criterio => {
-    const tipo = classificarCriterio(criterio);
-    const cenario = gerarCenario(tipo, criterio, contador);
+  criterios.forEach(c => {
+    const tipo = classificarCriterio(c);
+    if (!tipo) return;
 
-    if (cenario) {
-      cenarios.push(cenario);
-      contador++;
-    }
+    saida.push(gerarCenario(tipo, c, id));
+    id++;
   });
 
-  return cenarios.length
-    ? cenarios.join("\n\n")
-    : "Nenhum cenário válido pôde ser gerado.";
+  return saida.join("\n\n");
 }
 
-/* ================================
-   4. EXEMPLO DE USO (PODE REMOVER)
-================================ */
-
-// const criterios = [
-//   "Login com sucesso",
-//   "Login com senha inválida",
-//   "Login com campos obrigatórios vazios",
-//   "Tempo de resposta da autenticação",
-//   "Disponibilidade do sistema"
-// ];
-
-// console.log(gerarCasosDeTeste(criterios));
-
-
-// BOTÃO GERAR
+// 4. BOTÃO GERAR
 if (btnGerarCenarios) {
   btnGerarCenarios.addEventListener("click", () => {
-    outputCenarios.value = gerarCenariosGherkin(inputRequisito.value);
+    outputCenarios.value = gerarCasosDeTeste(inputRequisito.value);
   });
 }
 
@@ -905,6 +867,7 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
 
 
 
