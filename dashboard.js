@@ -47,33 +47,35 @@ function classificarCriterio(criterio) {
 
 // 2. TEMPLATE
 function gerarCenario(tipo, descricao, id) {
+  const titulo = resumirTitulo(descricao);
+  
   const map = {
     SUCESSO: `
-Cenário: CT${id} - ${descricao}
+Cenário: CT${id} – ${titulo}
 Dado que o usuário informe e-mail e senha válidos
 Quando solicitar o login
 Então o sistema deve permitir o acesso
 `,
     ERRO_NEGOCIO: `
-Cenário: CT${id} - ${descricao}
+Cenário: CT$${id} – ${titulo}
 Dado que o usuário informe senha inválida
 Quando tentar autenticar
 Então o sistema deve negar o acesso e exibir mensagem de erro
 `,
     VALIDACAO: `
-Cenário: CT${id} - ${descricao}
+Cenário: CT$${id} – ${titulo}
 Dado que o usuário informe campos obrigatórios vazios
 Quando tentar autenticar
 Então o sistema deve impedir o envio do formulário
 `,
     NAO_FUNCIONAL: `
-Cenário: CT${id} - ${descricao}
+Cenário: CT${id} - ${id} – ${titulo}
 Dado que o usuário informe e-mail e senha válidos
 Quando solicitar o login
 Então o tempo de resposta não deve ultrapassar 3 segundos
 `,
     AMBIENTE: `
-Cenário: CT${id} - ${descricao}
+Cenário: CT${id} - ${id} – ${titulo}
 Dado que o usuário esteja no ambiente de homologação
 Quando tentar acessar o sistema
 Então o sistema deve estar disponível
@@ -867,6 +869,7 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
 
 
 
