@@ -28,40 +28,122 @@ if (themeToggleBtn) {
 // =========================
 // GERADOR DE CENÁRIOS
 // =========================
-const inputRequisito = document.getElementById("inputRequisito");
-const outputCenarios = document.getElementById("outputCenarios");
-const btnGerarCenarios = document.getElementById("btnGerarCenarios");
-const btnLimparGerados = document.getElementById("btnLimparGerados");
-const btnMoverParaEdicao = document.getElementById("btnMoverParaEdicao");
-const btnLimparEditor = document.getElementById("btnLimparEditor");
-const editorCenarios = document.getElementById("editorCenarios");
+ ================================
+   1. CLASSIFICAÇÃO DO CRITÉRIO
+================================ */
 
-// CENÁRIOS FIXOS
-function gerarCenariosGherkin(descricao) {
-  if (!descricao.trim()) {
-    return "Informe uma descrição de requisito.";
+function classificarCriterio(criterio) {
+  const texto = criterio.toLowerCase();
+
+  if (texto.includes("sucesso") || texto.includes("permitir")) {
+    return "SUCESSO";
   }
 
-  // 1) Quebra o requisito em frases
-  const frases = descricao
-    .split(/\n|\.|;/)
-    .map(f => f.trim())
-    .filter(f => f.length > 5);
+  if (texto.includes("inválida") || texto.includes("negar")) {
+    return "ERRO_NEGOCIO";
+  }
 
-  // 2) Gera cenários a partir de cada frase
-  let resultado = "";
+  if (texto.includes("vazios") || texto.includes("obrigatórios")) {
+    return "VALIDACAO";
+  }
 
-  frases.forEach((frase, index) => {
-    resultado += `
-Cenário ${index + 1}: ${frase}
-  Dado que o usuário acessa a funcionalidade
-  Quando ${frase.toLowerCase()}
-  Então o sistema deve atender ao requisito
-`;
+  if (texto.includes("tempo de resposta") || texto.includes("segundos")) {
+    return "NAO_FUNCIONAL";
+  }
+
+  if (texto.includes("disponível") || texto.includes("ambiente")) {
+    return "AMBIENTE";
+  }
+
+  return "OUTRO";
+}
+
+/* ================================
+   2. TEMPLATES DE CENÁRIO
+================================ */
+
+function gerarCenario(tipo, descricao, id) {
+  const templates = {
+    SUCESSO: `
+CT${id}: ${descricao}
+Dado que o usuário informe e-mail e senha válidos
+Quando solicitar o login
+Então o sistema deve permitir o acesso
+`,
+
+    ERRO_NEGOCIO: `
+CT${id}: ${descricao}
+Dado que o usuário informe senha inválida
+Quando tentar autenticar
+Então o sistema deve negar o acesso e exibir mensagem de erro
+`,
+
+    VALIDACAO: `
+CT${id}: ${descricao}
+Dado que o usuário informe campos obrigatórios vazios
+Quando tentar autenticar
+Então o sistema deve impedir o envio do formulário
+`,
+
+    NAO_FUNCIONAL: `
+CT${id}: ${descricao}
+Dado que o usuário informe e-mail e senha válidos
+Quando solicitar o login
+Então o tempo de resposta da autenticação não deve ultrapassar 3 segundos
+`,
+
+    AMBIENTE: `
+CT${id}: ${descricao}
+Dado que o usuário esteja no ambiente de homologação
+Quando tentar acessar o sistema
+Então o sistema deve estar disponível
+`
+  };
+
+  return templates[tipo] ? templates[tipo].trim() : null;
+}
+
+/* ================================
+   3. FUNÇÃO PRINCIPAL (ÚNICA)
+================================ */
+
+function gerarCasosDeTeste(criteriosAceitacao) {
+  if (!Array.isArray(criteriosAceitacao) || criteriosAceitacao.length === 0) {
+    return "Erro: Nenhum critério de aceitação informado.";
+  }
+
+  let contador = 1;
+  const cenarios = [];
+
+  criteriosAceitacao.forEach(criterio => {
+    const tipo = classificarCriterio(criterio);
+    const cenario = gerarCenario(tipo, criterio, contador);
+
+    if (cenario) {
+      cenarios.push(cenario);
+      contador++;
+    }
   });
 
-  return resultado.trim();
+  return cenarios.length
+    ? cenarios.join("\n\n")
+    : "Nenhum cenário válido pôde ser gerado.";
 }
+
+/* ================================
+   4. EXEMPLO DE USO (PODE REMOVER)
+================================ */
+
+// const criterios = [
+//   "Login com sucesso",
+//   "Login com senha inválida",
+//   "Login com campos obrigatórios vazios",
+//   "Tempo de resposta da autenticação",
+//   "Disponibilidade do sistema"
+// ];
+
+// console.log(gerarCasosDeTeste(criterios));
+
 
 // BOTÃO GERAR
 if (btnGerarCenarios) {
@@ -823,6 +905,7 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
 
 
 
