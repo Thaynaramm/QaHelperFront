@@ -29,11 +29,23 @@ if (themeToggleBtn) {
     aplicarTema(atual === "theme-light" ? "theme-dark" : "theme-light");
   });
 }
+// ELEMENTOS DO GERADOR (OBRIGATÓRIO)
+// =========================
+document.addEventListener("DOMContentLoaded", () => {
+
+  // ELEMENTOS DO GERADOR
+  const btnGerarCenarios = document.getElementById("btnGerarCenarios");
+  const btnLimparGerados = document.getElementById("btnLimparGerados");
+  const btnGerarXlsx = document.getElementById("btnGerarXlsx");
+  const btnMoverParaEdicao = document.getElementById("btnMoverParaEdicao");
+  const btnLimparEditor = document.getElementById("btnLimparEditor");
+  const inputRequisito = document.getElementById("inputRequisito");
+  const outputCenarios = document.getElementById("outputCenarios");
+  const editorCenarios = document.getElementById("editorCenarios");
 
 // =========================
 // GERADOR DE CENÁRIOS
 // =========================
-
 
 
 // 1. CLASSIFICAÇÃO DO CRITÉRIO
@@ -873,6 +885,7 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
 
 
 
