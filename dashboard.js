@@ -29,13 +29,20 @@ if (themeToggleBtn) {
     aplicarTema(atual === "theme-light" ? "theme-dark" : "theme-light");
   });
 }
+// =========================
+// ELEMENTOS DO GERADOR (OBRIGATÓRIO)
+// =========================
+const btnGerarCenarios = document.getElementById("btnGerarCenarios");
+const btnLimparGerados = document.getElementById("btnLimparGerados");
+const btnMoverParaEdicao = document.getElementById("btnMoverParaEdicao");
 
+const inputRequisito = document.getElementById("inputRequisito");
+const outputCenarios = document.getElementById("outputCenarios");
+const editorCenarios = document.getElementById("editorCenarios");
 
 // =========================
 // GERADOR DE CENÁRIOS
 // =========================
-
-
 
 // 1. CLASSIFICAÇÃO DO CRITÉRIO
 function classificarCriterio(criterio) {
@@ -873,6 +880,7 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
 
 
 
