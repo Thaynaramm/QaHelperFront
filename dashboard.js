@@ -2,6 +2,11 @@
 // QA HELPER 
 // =========================
 
+function aplicarTema(tema) {
+  document.body.classList.remove("theme-light", "theme-dark");
+  document.body.classList.add(tema);
+  localStorage.setItem("qahelper_theme", tema);
+}
 document.addEventListener("DOMContentLoaded", () => {
 
   const themeToggleBtn = document.getElementById("themeToggleBtn");
@@ -54,8 +59,9 @@ function classificarCriterio(criterio) {
 }
 
 // 2. TEMPLATE
-function gerarCenario(tipo, descricao, id) {
-  const titulo = resumirTitulo(descricao);
+function resumirTitulo(texto) {
+  return texto.length > 60 ? texto.slice(0, 60) + "..." : texto;
+}
   
   const map = {
     SUCESSO: `
@@ -65,25 +71,25 @@ Quando solicitar o login
 Então o sistema deve permitir o acesso
 `,
     ERRO_NEGOCIO: `
-Cenário: CT$${id} – ${titulo}
+Cenário: CT${id} – ${titulo}
 Dado que o usuário informe senha inválida
 Quando tentar autenticar
 Então o sistema deve negar o acesso e exibir mensagem de erro
 `,
     VALIDACAO: `
-Cenário: CT$${id} – ${titulo}
+Cenário: CT${id} – ${titulo}
 Dado que o usuário informe campos obrigatórios vazios
 Quando tentar autenticar
 Então o sistema deve impedir o envio do formulário
 `,
     NAO_FUNCIONAL: `
-Cenário: CT${id} - ${id} – ${titulo}
+Cenário: CT${id} – ${titulo}
 Dado que o usuário informe e-mail e senha válidos
 Quando solicitar o login
 Então o tempo de resposta não deve ultrapassar 3 segundos
 `,
     AMBIENTE: `
-Cenário: CT${id} - ${id} – ${titulo}
+Cenário: CT${id} – ${titulo}
 Dado que o usuário esteja no ambiente de homologação
 Quando tentar acessar o sistema
 Então o sistema deve estar disponível
@@ -254,18 +260,18 @@ function adicionarAoHistorico(tipo, nomeArquivo, blob) {
 // =========================
 // EXPORTAR XLSX
 // =========================
-btnGerarXlsx.addEventListener("click", () => {
+if (btnGerarXlsx) {
+  btnGerarXlsx.addEventListener("click", () => {
 
-  // Captura o texto do editor
-  let textoBruto = editorCenarios.innerText.trim()
-    ? editorCenarios.innerText
-    : outputCenarios.value;
+    // Captura o texto do editor
+    let textoBruto = editorCenarios.innerText.trim()
+      ? editorCenarios.innerText
+      : outputCenarios.value;
 
-  if (!textoBruto.trim()) {
-    alert("Nenhum cenário encontrado.");
-    return;
-  }
-
+    if (!textoBruto.trim()) {
+      alert("Nenhum cenário encontrado.");
+      return;
+    }
   // -----------------------------------------
   // 1) SEPARAR CENÁRIOS — CADA "Cenário:" INICIA UM BLOCO
   // -----------------------------------------
@@ -877,6 +883,7 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
 
 
 
