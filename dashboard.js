@@ -108,6 +108,16 @@ function gerarCasosDeTeste(textoBruto) {
 
   return saida.join("\n\n");
 }
+// ELEMENTOS DO GERADOR
+// =========================
+const btnGerarCenarios = document.getElementById("btnGerarCenarios");
+const btnLimparGerados = document.getElementById("btnLimparGerados");
+const btnMoverParaEdicao = document.getElementById("btnMoverParaEdicao");
+const btnLimparEditor = document.getElementById("btnLimparEditor");
+
+const inputRequisito = document.getElementById("inputRequisito");
+const outputCenarios = document.getElementById("outputCenarios");
+const editorCenarios = document.getElementById("editorCenarios");
 
 // 4. BOTÃO GERAR
 if (btnGerarCenarios) {
@@ -869,6 +879,7 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
 
 
 
