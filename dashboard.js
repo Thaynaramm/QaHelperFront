@@ -129,10 +129,16 @@ const editorCenarios = document.getElementById("editorCenarios");
 // 4. BOTÃO GERAR
 if (btnGerarCenarios) {
   btnGerarCenarios.addEventListener("click", () => {
-    outputCenarios.value = gerarCasosDeTeste(inputRequisito.value);
+    console.log("Clique OK");
+    console.log("Texto digitado:", inputRequisito.value);
+
+    const resultado = gerarCasosDeTeste(inputRequisito.value);
+
+    console.log("Resultado gerado:", resultado);
+
+    outputCenarios.value = resultado;
   });
 }
-
 // LIMPAR CENÁRIOS
 if (btnLimparGerados) {
   btnLimparGerados.addEventListener("click", () => {
@@ -886,6 +892,7 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
 
 
 
