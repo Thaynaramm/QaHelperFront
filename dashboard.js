@@ -279,10 +279,19 @@ function adicionarAoHistorico(tipo, nomeArquivo, blob) {
 // =========================
 // EXPORTAR XLSX
 // =========================
-if (btnGerarXlsx) {
-  btnGerarXlsx.addEventListener("click", () => {
+if (btnGerarCenarios) {
+  btnGerarCenarios.addEventListener("click", () => {
+    const texto = inputRequisito.value;
 
-    alert("ENTROU NO XLSX"); // 👈 TESTE
+    if (!texto.trim()) {
+      alert("Informe ao menos um requisito.");
+      return;
+    }
+
+    const resultado = gerarCasosDeTeste(texto);
+    outputCenarios.value = resultado;
+  });
+}
 
   // Captura o texto do editor
   let textoBruto = editorCenarios.innerText.trim()
@@ -903,6 +912,7 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
 
 
 
