@@ -30,7 +30,6 @@ if (themeToggleBtn) {
   });
 }
 
-
 // =========================
 // GERADOR DE CENÁRIOS
 // =========================
@@ -874,6 +873,7 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
 
 
 
