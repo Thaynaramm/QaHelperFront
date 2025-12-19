@@ -276,7 +276,8 @@ function adicionarAoHistorico(tipo, nomeArquivo, blob) {
 // =========================
 // EXPORTAR XLSX
 // =========================
-btnGerarXlsx.addEventListener("click", () => {
+if (btnGerarXlsx) {
+  btnGerarXlsx.addEventListener("click", () => {
 
   // Captura o texto do editor
   let textoBruto = editorCenarios.innerText.trim()
@@ -449,8 +450,6 @@ btnGerarXlsx.addEventListener("click", () => {
     { wch: 10 },
     { wch: 25 }
   ];
-
-
   // -----------------------------------------
   // 7) GERAR XLSX + DOWNLOAD + HISTÓRICO
   // -----------------------------------------
@@ -899,6 +898,7 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
 
 
 
