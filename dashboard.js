@@ -2,6 +2,7 @@
 // QA HELPER - DASHBOARD
 // =========================
 
+// ===== LIBS =====
 const docx = window.docx;
 const saveAs = window.saveAs;
 
@@ -898,6 +899,7 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
 
 
 
