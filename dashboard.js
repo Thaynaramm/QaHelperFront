@@ -64,7 +64,7 @@ Quando solicitar o login
 Então o sistema deve permitir o acesso
 `,
     ERRO_NEGOCIO: `
-Cenário: CT$${id} – ${titulo}
+Cenário: CT${id} – ${titulo}
 Dado que o usuário informe senha inválida
 Quando tentar autenticar
 Então o sistema deve negar o acesso e exibir mensagem de erro
@@ -76,7 +76,7 @@ Quando tentar autenticar
 Então o sistema deve impedir o envio do formulário
 `,
     NAO_FUNCIONAL: `
-Cenário: CT${id} - ${id} – ${titulo}
+Cenário: CT${id} – ${titulo}
 Dado que o usuário informe e-mail e senha válidos
 Quando solicitar o login
 Então o tempo de resposta não deve ultrapassar 3 segundos
@@ -894,6 +894,7 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
 
 
 
