@@ -1,21 +1,19 @@
 // =========================
-// QA HELPER - DASHBOARD
+// QA HELPER 
 // =========================
 
-// ===== LIBS =====
-const docx = window.docx;
-const saveAs = window.saveAs;
-
-// =========================
-// TEMA LIGHT / DARK
-// =========================
+// --------- THEME TOGGLE ---------
 const themeToggleBtn = document.getElementById("themeToggleBtn");
 const themeLabelSpan = document.getElementById("themeLabel");
 
 function aplicarTema(theme) {
   document.body.classList.remove("theme-light", "theme-dark");
   document.body.classList.add(theme);
-  themeLabelSpan.textContent = theme === "theme-light" ? "Light" : "Dark";
+
+  if (themeLabelSpan) {
+    themeLabelSpan.textContent = theme === "theme-light" ? "Light" : "Dark";
+  }
+
   localStorage.setItem("qahelper_theme", theme);
 }
 
@@ -27,27 +25,19 @@ if (themeToggleBtn) {
     const atual = document.body.classList.contains("theme-light")
       ? "theme-light"
       : "theme-dark";
+
     aplicarTema(atual === "theme-light" ? "theme-dark" : "theme-light");
   });
 }
 
-// =========================
-// FUNÇÕES AUXILIARES
-// =========================
-function resumirTitulo(texto) {
-  const resumo = texto
-    .replace(/^como .*?, quero/i, "")
-    .replace(/^como .*? quero/i, "")
-    .replace(/para .*$/i, "")
-    .trim()
-    .substring(0, 60);
-
-  return resumo || "Cenário automático";
-}
 
 // =========================
 // GERADOR DE CENÁRIOS
 // =========================
+
+
+
+// 1. CLASSIFICAÇÃO DO CRITÉRIO
 function classificarCriterio(criterio) {
   const texto = criterio.toLowerCase();
 
@@ -55,14 +45,15 @@ function classificarCriterio(criterio) {
   if (texto.includes("inválida") || texto.includes("negar")) return "ERRO_NEGOCIO";
   if (texto.includes("vazios") || texto.includes("obrigatórios")) return "VALIDACAO";
   if (texto.includes("tempo de resposta") || texto.includes("segundos")) return "NAO_FUNCIONAL";
-  if (texto.includes("ambiente") || texto.includes("disponível")) return "AMBIENTE";
+  if (texto.includes("disponível") || texto.includes("ambiente")) return "AMBIENTE";
 
   return null;
 }
 
+// 2. TEMPLATE
 function gerarCenario(tipo, descricao, id) {
   const titulo = resumirTitulo(descricao);
-
+  
   const map = {
     SUCESSO: `
 Cenário: CT${id} – ${titulo}
@@ -71,25 +62,25 @@ Quando solicitar o login
 Então o sistema deve permitir o acesso
 `,
     ERRO_NEGOCIO: `
-Cenário: CT${id} – ${titulo}
+Cenário: CT$${id} – ${titulo}
 Dado que o usuário informe senha inválida
 Quando tentar autenticar
 Então o sistema deve negar o acesso e exibir mensagem de erro
 `,
     VALIDACAO: `
-Cenário: CT${id} – ${titulo}
+Cenário: CT$${id} – ${titulo}
 Dado que o usuário informe campos obrigatórios vazios
 Quando tentar autenticar
 Então o sistema deve impedir o envio do formulário
 `,
     NAO_FUNCIONAL: `
-Cenário: CT${id} – ${titulo}
+Cenário: CT${id} - ${id} – ${titulo}
 Dado que o usuário informe e-mail e senha válidos
 Quando solicitar o login
 Então o tempo de resposta não deve ultrapassar 3 segundos
 `,
     AMBIENTE: `
-Cenário: CT${id} – ${titulo}
+Cenário: CT${id} - ${id} – ${titulo}
 Dado que o usuário esteja no ambiente de homologação
 Quando tentar acessar o sistema
 Então o sistema deve estar disponível
@@ -99,10 +90,12 @@ Então o sistema deve estar disponível
   return map[tipo]?.trim() || "";
 }
 
+// 3. FUNÇÃO PRINCIPAL
 function gerarCasosDeTeste(textoBruto) {
   if (!textoBruto.trim()) return "";
 
-  const linhas = textoBruto
+  // quebra linhas → array
+  const criterios = textoBruto
     .split("\n")
     .map(l => l.trim())
     .filter(l => l.length > 0);
@@ -110,70 +103,57 @@ function gerarCasosDeTeste(textoBruto) {
   let id = 1;
   const saida = [];
 
-  linhas.forEach(linha => {
-    const tipo = classificarCriterio(linha);
+  criterios.forEach(c => {
+    const tipo = classificarCriterio(c);
     if (!tipo) return;
 
-    saida.push(gerarCenario(tipo, linha, id));
+    saida.push(gerarCenario(tipo, c, id));
     id++;
   });
 
   return saida.join("\n\n");
 }
 
-// =========================
-// ELEMENTOS DOM
-// =========================
-const inputRequisito = document.getElementById("inputRequisito");
-const outputCenarios = document.getElementById("outputCenarios");
-const editorCenarios = document.getElementById("editorCenarios");
-
-const btnGerarCenarios = document.getElementById("btnGerarCenarios");
-const btnLimparGerados = document.getElementById("btnLimparGerados");
-const btnMoverParaEdicao = document.getElementById("btnMoverParaEdicao");
-const btnLimparEditor = document.getElementById("btnLimparEditor");
-const btnGerarXlsx = document.getElementById("btnGerarXlsx");
-const btnGerarDocx = document.getElementById("btnGerarDocx");
-
-// =========================
-// BOTÕES – CENÁRIOS
-// =========================
+// 4. BOTÃO GERAR
 if (btnGerarCenarios) {
   btnGerarCenarios.addEventListener("click", () => {
-    const resultado = gerarCasosDeTeste(inputRequisito.value);
-    outputCenarios.value = resultado;
-
-    if (!resultado) {
-      alert("Nenhum cenário identificado. Use critérios como sucesso, inválida, tempo de resposta.");
-    }
+    outputCenarios.value = gerarCasosDeTeste(inputRequisito.value);
   });
 }
 
+// LIMPAR CENÁRIOS
 if (btnLimparGerados) {
   btnLimparGerados.addEventListener("click", () => {
     outputCenarios.value = "";
   });
 }
 
+// MOVER PARA EDIÇÃO
 if (btnMoverParaEdicao) {
   btnMoverParaEdicao.addEventListener("click", () => {
-    if (!outputCenarios.value.trim()) return;
+    const texto = outputCenarios.value;
+    if (!texto.trim()) return;
 
-    editorCenarios.innerHTML = outputCenarios.value
+    // Filtra apenas blocos que começam com "Cenário:"
+    const linhasValidas = texto
       .split("\n")
-      .map(l => `<div>${l}</div>`)
+      .filter((l) => l.trim().startsWith("Cenário:") || l.trim().startsWith("Dado") || l.trim().startsWith("Quando") || l.trim().startsWith("Então"));
+
+    // Converte de volta para HTML
+    editorCenarios.innerHTML = linhasValidas
+      .map((l) => `<div>${l}</div>`)
       .join("");
 
     editorCenarios.focus();
   });
 }
 
+// LIMPAR EDITOR DE CENÁRIOS
 if (btnLimparEditor) {
   btnLimparEditor.addEventListener("click", () => {
     editorCenarios.innerHTML = "";
   });
 }
-
 // =========================
 // HISTÓRICO (LOCALSTORAGE)
 // =========================
@@ -269,21 +249,19 @@ function adicionarAoHistorico(tipo, nomeArquivo, blob) {
 }
 
 // =========================
-// =========================
 // EXPORTAR XLSX
 // =========================
-if (btnGerarXlsx) {
-  btnGerarXlsx.addEventListener("click", () => {
+btnGerarXlsx.addEventListener("click", () => {
 
-    // Captura o texto do editor ou dos cenários gerados
-    const textoBruto = editorCenarios.innerText.trim()
-      ? editorCenarios.innerText
-      : outputCenarios.value;
+  // Captura o texto do editor
+  let textoBruto = editorCenarios.innerText.trim()
+    ? editorCenarios.innerText
+    : outputCenarios.value;
 
-    if (!textoBruto.trim()) {
-      alert("Nenhum cenário encontrado.");
-      return;
-    }
+  if (!textoBruto.trim()) {
+    alert("Nenhum cenário encontrado.");
+    return;
+  }
 
   // -----------------------------------------
   // 1) SEPARAR CENÁRIOS — CADA "Cenário:" INICIA UM BLOCO
@@ -489,6 +467,8 @@ if (btnGerarXlsx) {
 // GERAR ARQUIVO DOCX
 // =========================
 
+const btnGerarDocx = document.getElementById("btnGerarDocx");
+
 if (btnGerarDocx) {
   btnGerarDocx.addEventListener("click", async () => {
 
@@ -498,7 +478,7 @@ if (btnGerarDocx) {
     editorCenarios.childNodes.forEach(node => {
 
       // ============================
-      // 1. TEXTO / <div> / <p>
+      // 1. NÓ DE TEXTO / <div> / <p>
       // ============================
       if (node.nodeType === Node.ELEMENT_NODE) {
 
@@ -894,6 +874,43 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
