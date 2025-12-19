@@ -26,10 +26,7 @@ if (themeToggleBtn) {
 }
 
 // =========================
-// GERADOR DE CENÁRIOS
-// =========================
-// =========================
-// GERADOR DE CENÁRIOS (CORRIGIDO)
+// GERADOR DE CENÁRIOS 
 // =========================
 
 // 1. CLASSIFICAÇÃO DO CRITÉRIO
@@ -879,6 +876,7 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
 
 
 
