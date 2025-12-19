@@ -50,30 +50,11 @@ const editorCenarios = document.getElementById("editorCenarios");
 function classificarCriterio(criterio) {
   const texto = criterio.toLowerCase();
 
-  if (
-    texto.includes("sucesso") ||
-    texto.includes("permitir") ||
-    texto.includes("realize") ||
-    texto.includes("cadastro")
-  ) return "SUCESSO";
-
-  if (
-    texto.includes("inválida") ||
-    texto.includes("negar") ||
-    texto.includes("único")
-  ) return "ERRO_NEGOCIO";
-
-  if (
-    texto.includes("obrigatórios") ||
-    texto.includes("obrigatorio") ||
-    texto.includes("mínimo") ||
-    texto.includes("minimo")
-  ) return "VALIDACAO";
-
-  if (
-    texto.includes("tempo de resposta") ||
-    texto.includes("segundos")
-  ) return "NAO_FUNCIONAL";
+  if (texto.includes("sucesso") || texto.includes("permitir")) return "SUCESSO";
+  if (texto.includes("inválida") || texto.includes("negar")) return "ERRO_NEGOCIO";
+  if (texto.includes("vazios") || texto.includes("obrigatórios")) return "VALIDACAO";
+  if (texto.includes("tempo de resposta") || texto.includes("segundos")) return "NAO_FUNCIONAL";
+  if (texto.includes("disponível") || texto.includes("ambiente")) return "AMBIENTE";
 
   return null;
 }
@@ -931,6 +912,7 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
 
 
 
