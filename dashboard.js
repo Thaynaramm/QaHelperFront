@@ -123,7 +123,7 @@ function gerarCasosDeTeste(textoBruto) {
 // 4. BOTÃO GERAR
 if (btnGerarCenarios) {
   btnGerarCenarios.addEventListener("click", () => {
-    outputCenarios.value = gerarCasosDeTeste(inputRequisito.value);
+    alert("CLIQUE FUNCIONOU");
   });
 }
 
@@ -880,6 +880,7 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
 
 
 
