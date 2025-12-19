@@ -24,6 +24,14 @@ if (themeToggleBtn) {
     aplicarTema(atual === "theme-light" ? "theme-dark" : "theme-light");
   });
 }
+function resumirTitulo(texto) {
+  return texto
+    .replace(/^como .*?, quero/i, "")
+    .replace(/^como .*? quero/i, "")
+    .replace(/para .*$/i, "")
+    .trim()
+    .substring(0, 60) || "Cenário automático";
+}
 
 // =========================
 // GERADOR DE CENÁRIOS 
@@ -878,6 +886,7 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
 
 
 
