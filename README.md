@@ -59,15 +59,16 @@ dashboard.html
 dashboard.js
 style-dashboard.css
 
-## 👩‍💻 Autoria
-
-Desenvolvido por Thaynara Monteiro
-Analista de QA - Pleno
 ---
 
 ## 🌐 Demonstração (opcional)
-Se você publicar no GitHub Pages, coloque o link aqui:
 link: https://thaynaramm.github.io/QaHelperFront/
+ email para sugestão de melhoria: salesmatias01@gmail.com
+
+ ## 👩‍💻 Autoria
+
+Desenvolvido por Thaynara Monteiro
+Analista de QA - Pleno
 
 
 
