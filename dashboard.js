@@ -2,33 +2,25 @@
 // QA HELPER 
 // =========================
 
-// --------- THEME TOGGLE ---------
-const themeToggleBtn = document.getElementById("themeToggleBtn");
-const themeLabelSpan = document.getElementById("themeLabel");
+document.addEventListener("DOMContentLoaded", () => {
 
-function aplicarTema(theme) {
-  document.body.classList.remove("theme-light", "theme-dark");
-  document.body.classList.add(theme);
+  const themeToggleBtn = document.getElementById("themeToggleBtn");
 
-  if (themeLabelSpan) {
-    themeLabelSpan.textContent = theme === "theme-light" ? "Light" : "Dark";
+  const temaSalvo = localStorage.getItem("qahelper_theme") || "theme-light";
+  aplicarTema(temaSalvo);
+
+  if (themeToggleBtn) {
+    themeToggleBtn.addEventListener("click", () => {
+      const atual = document.body.classList.contains("theme-light")
+        ? "theme-light"
+        : "theme-dark";
+
+      aplicarTema(atual === "theme-light" ? "theme-dark" : "theme-light");
+    });
   }
 
-  localStorage.setItem("qahelper_theme", theme);
-}
+});
 
-const temaSalvo = localStorage.getItem("qahelper_theme") || "theme-light";
-aplicarTema(temaSalvo);
-
-if (themeToggleBtn) {
-  themeToggleBtn.addEventListener("click", () => {
-    const atual = document.body.classList.contains("theme-light")
-      ? "theme-light"
-      : "theme-dark";
-
-    aplicarTema(atual === "theme-light" ? "theme-dark" : "theme-light");
-  });
-}
 // ELEMENTOS DO GERADOR (OBRIGATÓRIO)
 // =========================
 document.addEventListener("DOMContentLoaded", () => {
@@ -885,6 +877,7 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
 
 
 
