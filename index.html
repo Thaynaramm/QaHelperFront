@@ -25,11 +25,11 @@
         </div>
 
         <div class="dash-header-right">
-          <button id="themeToggleBtn" type="button" class="btn btn-ghost">
+          <button id="themeToggleBtn" class="btn btn-ghost">
             Tema: <span id="themeLabel">Light</span>
           </button>
           <span id="userEmail" class="user-email">Olá, QA</span>
-          <button id="logoutBtn" type="button" class="btn btn-logout">Sair</button>
+          <button id="logoutBtn" class="btn btn-logout">Sair</button>
         </div>
       </header>
 
@@ -72,33 +72,21 @@
             <!-- BOTÕES -->
             <div class="card-footer">
               <div class="card-footer-left">
-                <button
-                  id="btnGerarCenarios"
-                  type="button"
-                  class="btn btn-primary">
+                <button id="btnGerarCenarios" class="btn btn-primary">
                   Gerar cenários
                 </button>
 
-                <button
-                  id="btnLimparGerados"
-                  type="button"
-                  class="btn btn-outline">
+                <button id="btnLimparGerados" class="btn btn-outline">
                   Limpar cenários gerados
                 </button>
               </div>
 
               <div class="card-footer-right">
-                <button
-                  id="btnMoverParaEdicao"
-                  type="button"
-                  class="btn btn-outline">
+                <button id="btnMoverParaEdicao" class="btn btn-outline">
                   Mover cenários para edição
                 </button>
 
-                <button
-                  id="btnGerarXlsx"
-                  type="button"
-                  class="btn btn-secondary">
+                <button id="btnGerarXlsx" class="btn btn-secondary">
                   Gerar planejamento (.XLSX)
                 </button>
               </div>
@@ -114,26 +102,12 @@
 
             <div class="card-body">
               <label class="field-label">Edição dos cenários (texto + imagens)</label>
-              <div
-                id="editorCenarios"
-                class="field-editor editor-cenarios"
-                contenteditable="true"></div>
+              <div id="editorCenarios" class="field-editor editor-cenarios" contenteditable="true"></div>
             </div>
 
             <div class="card-footer card-footer-single">
-              <button
-                id="btnGerarDocx"
-                type="button"
-                class="btn btn-primary">
-                Gerar arquivo (.docx)
-              </button>
-
-              <button
-                id="btnLimparEditor"
-                type="button"
-                class="btn btn-outline">
-                Limpar editor
-              </button>
+               <button id="btnGerarDocx" class="btn btn-primary">Gerar arquivo (.docx)</button>
+              <button id="btnLimparEditor" class="btn btn-outline">Limpar editor</button>
             </div>
           </div>
 
@@ -146,15 +120,15 @@
 
             <div class="card-body">
               <div class="image-toolbar">
-                <button id="btnToolCrop" type="button" class="btn-toolbar">✂ Cortar</button>
-                <button id="btnToolArrow" type="button" class="btn-toolbar">➤ Seta</button>
-                <button id="btnToolRect" type="button" class="btn-toolbar">▭ Retângulo</button>
-                <button id="btnToolNewImage" type="button" class="btn-toolbar">🖼 Nova imagem</button>
+                <button id="btnToolCrop" class="btn-toolbar">✂ Cortar</button>
+                <button id="btnToolArrow" class="btn-toolbar">➤ Seta</button>
+                <button id="btnToolRect" class="btn-toolbar">▭ Retângulo</button>
+                <button id="btnToolNewImage" class="btn-toolbar">🖼 Nova imagem</button>
 
                 <div class="toolbar-divider"></div>
 
-                <button id="btnToolUndo" type="button" class="btn-toolbar">↩ Desfazer</button>
-                <button id="btnToolRedo" type="button" class="btn-toolbar">↪ Refazer</button>
+                <button id="btnToolUndo" class="btn-toolbar">↩ Desfazer</button>
+                <button id="btnToolRedo" class="btn-toolbar">↪ Refazer</button>
               </div>
 
               <div class="image-drop-area" id="imageDropArea">
@@ -166,12 +140,7 @@
             </div>
 
             <div class="card-footer card-footer-single">
-              <button
-                id="btnCopyImage"
-                type="button"
-                class="btn btn-outline">
-                Copiar imagem
-              </button>
+              <button id="btnCopyImage" class="btn btn-outline">Copiar imagem</button>
             </div>
           </div>
 
@@ -202,12 +171,19 @@
     </div>
 
     <!-- LIBS -->
-    <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://unpkg.com/docx@7.7.0/build/index.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 
     <!-- JAVASCRIPT PRINCIPAL -->
     <script src="dashboard.js"></script>
   </body>
 </html>
+
+
+
+
+
+
+
 
