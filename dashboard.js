@@ -57,6 +57,15 @@ function classificarCriterio(criterio) {
   return null;
 }
 
+// RESUMIR TÍTULO (OBRIGATÓRIO)
+// =========================
+function resumirTitulo(texto) {
+  if (!texto) return "";
+
+  return texto.length > 50
+    ? texto.substring(0, 50) + "..."
+    : texto;
+}
 // 2. TEMPLATE
 function gerarCenario(tipo, descricao, id) {
   const titulo = resumirTitulo(descricao);
@@ -880,6 +889,7 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
 
 
 
