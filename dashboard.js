@@ -32,14 +32,46 @@ if (themeToggleBtn) {
 // =========================
 // ELEMENTOS DO GERADOR (OBRIGATÓRIO)
 // =========================
-const btnGerarCenarios = document.getElementById("btnGerarCenarios");
-const btnLimparGerados = document.getElementById("btnLimparGerados");
-const btnGerarXlsx = document.getElementById("btnGerarXlsx");
-const btnMoverParaEdicao = document.getElementById("btnMoverParaEdicao");
-const btnLimparEditor = document.getElementById("btnLimparEditor");
-const inputRequisito = document.getElementById("inputRequisito");
-const outputCenarios = document.getElementById("outputCenarios");
-const editorCenarios = document.getElementById("editorCenarios");
+document.addEventListener("DOMContentLoaded", () => {
+
+  // ELEMENTOS DO GERADOR
+  const btnGerarCenarios = document.getElementById("btnGerarCenarios");
+  const btnLimparGerados = document.getElementById("btnLimparGerados");
+  const btnGerarXlsx = document.getElementById("btnGerarXlsx");
+  const btnMoverParaEdicao = document.getElementById("btnMoverParaEdicao");
+  const btnLimparEditor = document.getElementById("btnLimparEditor");
+  const inputRequisito = document.getElementById("inputRequisito");
+  const outputCenarios = document.getElementById("outputCenarios");
+  const editorCenarios = document.getElementById("editorCenarios");
+
+  // BOTÃO GERAR CENÁRIOS 
+  btnGerarCenarios.addEventListener("click", () => {
+    const resultado = gerarCasosDeTeste(inputRequisito.value);
+    outputCenarios.value = resultado;
+  });
+
+  // LIMPAR
+  btnLimparGerados.addEventListener("click", () => {
+    outputCenarios.value = "";
+  });
+
+  // MOVER PARA EDIÇÃO
+  btnMoverParaEdicao.addEventListener("click", () => {
+    if (!outputCenarios.value.trim()) return;
+
+    editorCenarios.innerHTML = outputCenarios.value
+      .split("\n")
+      .map(l => `<div>${l}</div>`)
+      .join("");
+  });
+
+  // LIMPAR EDITOR
+  btnLimparEditor.addEventListener("click", () => {
+    editorCenarios.innerHTML = "";
+  });
+
+});
+
 
 
 // =========================
@@ -912,6 +944,7 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
 
 
 
