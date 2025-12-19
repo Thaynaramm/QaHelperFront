@@ -62,25 +62,25 @@ Quando solicitar o login
 Então o sistema deve permitir o acesso
 `,
     ERRO_NEGOCIO: `
-Cenário: CT$${id} – ${titulo}
+Cenário: CT${id} – ${titulo}
 Dado que o usuário informe senha inválida
 Quando tentar autenticar
 Então o sistema deve negar o acesso e exibir mensagem de erro
 `,
     VALIDACAO: `
-Cenário: CT$${id} – ${titulo}
+Cenário: CT${id} – ${titulo}
 Dado que o usuário informe campos obrigatórios vazios
 Quando tentar autenticar
 Então o sistema deve impedir o envio do formulário
 `,
     NAO_FUNCIONAL: `
-Cenário: CT${id} - ${id} – ${titulo}
+Cenário: CT${id} – ${titulo}
 Dado que o usuário informe e-mail e senha válidos
 Quando solicitar o login
 Então o tempo de resposta não deve ultrapassar 3 segundos
 `,
     AMBIENTE: `
-Cenário: CT${id} - ${id} – ${titulo}
+Cenário: CT${id} – ${titulo}
 Dado que o usuário esteja no ambiente de homologação
 Quando tentar acessar o sistema
 Então o sistema deve estar disponível
@@ -89,7 +89,6 @@ Então o sistema deve estar disponível
 
   return map[tipo]?.trim() || "";
 }
-
 // 3. FUNÇÃO PRINCIPAL
 function gerarCasosDeTeste(textoBruto) {
   if (!textoBruto.trim()) return "";
@@ -874,6 +873,7 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
 
 
 
