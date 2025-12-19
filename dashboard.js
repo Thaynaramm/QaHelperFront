@@ -1,8 +1,10 @@
 // =========================
-// QA HELPER
+// QA HELPER - DASHBOARD
 // =========================
 
-// --------- THEME TOGGLE ---------
+// =========================
+// TEMA LIGHT / DARK
+// =========================
 const themeToggleBtn = document.getElementById("themeToggleBtn");
 const themeLabelSpan = document.getElementById("themeLabel");
 
@@ -42,8 +44,6 @@ function resumirTitulo(texto) {
 // =========================
 // GERADOR DE CENÁRIOS
 // =========================
-
-// 1. CLASSIFICAÇÃO
 function classificarCriterio(criterio) {
   const texto = criterio.toLowerCase();
 
@@ -51,12 +51,11 @@ function classificarCriterio(criterio) {
   if (texto.includes("inválida") || texto.includes("negar")) return "ERRO_NEGOCIO";
   if (texto.includes("vazios") || texto.includes("obrigatórios")) return "VALIDACAO";
   if (texto.includes("tempo de resposta") || texto.includes("segundos")) return "NAO_FUNCIONAL";
-  if (texto.includes("disponível") || texto.includes("ambiente")) return "AMBIENTE";
+  if (texto.includes("ambiente") || texto.includes("disponível")) return "AMBIENTE";
 
   return null;
 }
 
-// 2. TEMPLATE
 function gerarCenario(tipo, descricao, id) {
   const titulo = resumirTitulo(descricao);
 
@@ -96,11 +95,10 @@ Então o sistema deve estar disponível
   return map[tipo]?.trim() || "";
 }
 
-// 3. FUNÇÃO PRINCIPAL
 function gerarCasosDeTeste(textoBruto) {
   if (!textoBruto.trim()) return "";
 
-  const criterios = textoBruto
+  const linhas = textoBruto
     .split("\n")
     .map(l => l.trim())
     .filter(l => l.length > 0);
@@ -108,11 +106,11 @@ function gerarCasosDeTeste(textoBruto) {
   let id = 1;
   const saida = [];
 
-  criterios.forEach(c => {
-    const tipo = classificarCriterio(c);
+  linhas.forEach(linha => {
+    const tipo = classificarCriterio(linha);
     if (!tipo) return;
 
-    saida.push(gerarCenario(tipo, c, id));
+    saida.push(gerarCenario(tipo, linha, id));
     id++;
   });
 
@@ -120,8 +118,12 @@ function gerarCasosDeTeste(textoBruto) {
 }
 
 // =========================
-// ELEMENTOS DO DOM
+// ELEMENTOS DOM
 // =========================
+const inputRequisito = document.getElementById("inputRequisito");
+const outputCenarios = document.getElementById("outputCenarios");
+const editorCenarios = document.getElementById("editorCenarios");
+
 const btnGerarCenarios = document.getElementById("btnGerarCenarios");
 const btnLimparGerados = document.getElementById("btnLimparGerados");
 const btnMoverParaEdicao = document.getElementById("btnMoverParaEdicao");
@@ -129,12 +131,8 @@ const btnLimparEditor = document.getElementById("btnLimparEditor");
 const btnGerarXlsx = document.getElementById("btnGerarXlsx");
 const btnGerarDocx = document.getElementById("btnGerarDocx");
 
-const inputRequisito = document.getElementById("inputRequisito");
-const outputCenarios = document.getElementById("outputCenarios");
-const editorCenarios = document.getElementById("editorCenarios");
-
 // =========================
-// BOTÕES – GERADOR
+// BOTÕES – CENÁRIOS
 // =========================
 if (btnGerarCenarios) {
   btnGerarCenarios.addEventListener("click", () => {
@@ -142,7 +140,7 @@ if (btnGerarCenarios) {
     outputCenarios.value = resultado;
 
     if (!resultado) {
-      alert("Nenhum cenário identificado. Use critérios claros (ex: sucesso, inválida, tempo de resposta).");
+      alert("Nenhum cenário identificado. Use critérios como sucesso, inválida, tempo de resposta.");
     }
   });
 }
@@ -155,19 +153,10 @@ if (btnLimparGerados) {
 
 if (btnMoverParaEdicao) {
   btnMoverParaEdicao.addEventListener("click", () => {
-    const texto = outputCenarios.value;
-    if (!texto.trim()) return;
+    if (!outputCenarios.value.trim()) return;
 
-    const linhasValidas = texto
+    editorCenarios.innerHTML = outputCenarios.value
       .split("\n")
-      .filter(l =>
-        l.trim().startsWith("Cenário:") ||
-        l.trim().startsWith("Dado") ||
-        l.trim().startsWith("Quando") ||
-        l.trim().startsWith("Então")
-      );
-
-    editorCenarios.innerHTML = linhasValidas
       .map(l => `<div>${l}</div>`)
       .join("");
 
@@ -182,31 +171,22 @@ if (btnLimparEditor) {
 }
 
 // =========================
-// HISTÓRICO (LOCALSTORAGE)
+// HISTÓRICO
 // =========================
 const historicoLista = document.getElementById("historicoLista");
-
-function carregarHistorico() {
-  const salvo = localStorage.getItem("qahelper_historico");
-  return salvo ? JSON.parse(salvo) : [];
-}
+let historico = JSON.parse(localStorage.getItem("qahelper_historico")) || [];
 
 function salvarHistorico() {
   localStorage.setItem("qahelper_historico", JSON.stringify(historico));
 }
 
-let historico = carregarHistorico();
-
 function renderizarHistorico() {
   historicoLista.innerHTML = "";
 
-  if (historico.length === 0) {
+  if (!historico.length) {
     historicoLista.innerHTML = `
       <div class="historico-item historico-item-vazio">
         <div class="historico-titulo">Nenhum arquivo gerado ainda</div>
-        <div class="historico-meta">
-          <span class="historico-data">Gere algo para preencher o histórico.</span>
-        </div>
       </div>`;
     return;
   }
@@ -214,54 +194,114 @@ function renderizarHistorico() {
   historico.forEach((item, index) => {
     const div = document.createElement("div");
     div.className = "historico-item";
-
     div.innerHTML = `
-      <div class="historico-item-header">
-        <div class="historico-titulo">${item.nome}</div>
-        <span class="historico-tipo">${item.tipo}</span>
-      </div>
-      <div class="historico-meta">
-        <span class="historico-data">Gerado em ${item.data}</span>
-        <div class="historico-actions">
-          <button class="btn btn-outline btn-download">Baixar</button>
-          <button class="btn btn-outline btn-delete">Excluir</button>
-        </div>
-      </div>
+      <div class="historico-titulo">${item.nome}</div>
+      <button class="btn btn-outline">Baixar</button>
     `;
 
-    div.querySelector(".btn-download").onclick = () => {
+    div.querySelector("button").onclick = () => {
       const a = document.createElement("a");
       a.href = item.base64;
       a.download = item.nome;
       a.click();
     };
 
-    div.querySelector(".btn-delete").onclick = () => {
-      historico.splice(index, 1);
-      salvarHistorico();
-      renderizarHistorico();
-    };
-
     historicoLista.appendChild(div);
   });
 }
 
-function adicionarAoHistorico(tipo, nomeArquivo, blob) {
+function adicionarAoHistorico(nome, blob) {
   const reader = new FileReader();
-
-  reader.onload = function () {
+  reader.onload = () => {
     historico.push({
-      tipo,
-      nome: nomeArquivo,
-      data: new Date().toLocaleString(),
+      nome,
       base64: reader.result
     });
-
     salvarHistorico();
     renderizarHistorico();
   };
-
   reader.readAsDataURL(blob);
 }
 
 renderizarHistorico();
+
+// =========================
+// GERAR XLSX
+// =========================
+if (btnGerarXlsx) {
+  btnGerarXlsx.addEventListener("click", () => {
+    const texto = editorCenarios.innerText || outputCenarios.value;
+    if (!texto.trim()) return alert("Nenhum cenário encontrado.");
+
+    const linhas = texto.split("\n").filter(l => l.trim());
+
+    const ws = XLSX.utils.aoa_to_sheet([
+      ["Passo", "Descrição"],
+      ...linhas.map((l, i) => [i + 1, l])
+    ]);
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Planejamento");
+
+    const bin = XLSX.write(wb, { bookType: "xlsx", type: "binary" });
+    const buf = new ArrayBuffer(bin.length);
+    const view = new Uint8Array(buf);
+    for (let i = 0; i < bin.length; i++) view[i] = bin.charCodeAt(i);
+
+    const blob = new Blob([buf], { type: "application/octet-stream" });
+    adicionarAoHistorico("planejamento.xlsx", blob);
+
+    saveAs(blob, "planejamento.xlsx");
+  });
+}
+
+// =========================
+// GERAR DOCX
+// =========================
+if (btnGerarDocx) {
+  btnGerarDocx.addEventListener("click", async () => {
+    const children = [];
+
+    editorCenarios.childNodes.forEach(node => {
+      if (node.nodeType === Node.ELEMENT_NODE) {
+        if (node.querySelector("img")) {
+          node.querySelectorAll("img").forEach(img => {
+            const bytes = Uint8Array.from(atob(img.src.split(",")[1]), c => c.charCodeAt(0));
+            children.push(new docx.Paragraph({
+              children: [new docx.ImageRun({ data: bytes, transformation: { width: 500, height: 300 } })]
+            }));
+          });
+        } else {
+          children.push(new docx.Paragraph(node.innerText));
+        }
+      }
+    });
+
+    const doc = new docx.Document({ sections: [{ children }] });
+    const blob = await docx.Packer.toBlob(doc);
+
+    adicionarAoHistorico("cenarios.docx", blob);
+    saveAs(blob, "cenarios.docx");
+  });
+}
+
+// =========================
+// EDITOR DE IMAGEM
+// =========================
+const canvas = document.getElementById("imageCanvas");
+const ctx = canvas.getContext("2d");
+canvas.width = 900;
+canvas.height = 500;
+
+window.addEventListener("paste", e => {
+  const item = [...e.clipboardData.items].find(i => i.type.startsWith("image/"));
+  if (!item) return;
+
+  const file = item.getAsFile();
+  const img = new Image();
+  img.onload = () => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+  };
+  img.src = URL.createObjectURL(file);
+});
