@@ -279,6 +279,8 @@ function adicionarAoHistorico(tipo, nomeArquivo, blob) {
 if (btnGerarXlsx) {
   btnGerarXlsx.addEventListener("click", () => {
 
+    alert("ENTROU NO XLSX"); // 👈 TESTE
+
   // Captura o texto do editor
   let textoBruto = editorCenarios.innerText.trim()
     ? editorCenarios.innerText
@@ -898,6 +900,7 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
 
 
 
