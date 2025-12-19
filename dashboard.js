@@ -44,36 +44,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const outputCenarios = document.getElementById("outputCenarios");
   const editorCenarios = document.getElementById("editorCenarios");
 
-  // BOTÃO GERAR CENÁRIOS 
-  btnGerarCenarios.addEventListener("click", () => {
-    const resultado = gerarCasosDeTeste(inputRequisito.value);
-    outputCenarios.value = resultado;
-  });
-
-  // LIMPAR
-  btnLimparGerados.addEventListener("click", () => {
-    outputCenarios.value = "";
-  });
-
-  // MOVER PARA EDIÇÃO
-  btnMoverParaEdicao.addEventListener("click", () => {
-    if (!outputCenarios.value.trim()) return;
-
-    editorCenarios.innerHTML = outputCenarios.value
-      .split("\n")
-      .map(l => `<div>${l}</div>`)
-      .join("");
-  });
-
-  // LIMPAR EDITOR
-  btnLimparEditor.addEventListener("click", () => {
-    editorCenarios.innerHTML = "";
-  });
-
-});
-
-
-
 // =========================
 // GERADOR DE CENÁRIOS
 // =========================
@@ -91,17 +61,6 @@ function classificarCriterio(criterio) {
   return null;
 }
 
-// RESUMIR TÍTULO 
-// =========================
-function resumirTitulo(texto) {
-  if (!texto) return "";
-
-  return texto
-    .replace(/^como\s+.*?,\s*/i, "")
-    .replace(/\.$/, "")
-    .trim()
-    .slice(0, 60);
-}
 // 2. TEMPLATE
 function gerarCenario(tipo, descricao, id) {
   const titulo = resumirTitulo(descricao);
@@ -114,25 +73,25 @@ Quando solicitar o login
 Então o sistema deve permitir o acesso
 `,
     ERRO_NEGOCIO: `
-Cenário: CT${id} – ${titulo}
+Cenário: CT$${id} – ${titulo}
 Dado que o usuário informe senha inválida
 Quando tentar autenticar
 Então o sistema deve negar o acesso e exibir mensagem de erro
 `,
     VALIDACAO: `
-Cenário: CT${id} – ${titulo}
+Cenário: CT$${id} – ${titulo}
 Dado que o usuário informe campos obrigatórios vazios
 Quando tentar autenticar
 Então o sistema deve impedir o envio do formulário
 `,
     NAO_FUNCIONAL: `
-Cenário: CT${id} – ${titulo}
+Cenário: CT${id} - ${id} – ${titulo}
 Dado que o usuário informe e-mail e senha válidos
 Quando solicitar o login
 Então o tempo de resposta não deve ultrapassar 3 segundos
 `,
     AMBIENTE: `
-Cenário: CT${id} – ${titulo}
+Cenário: CT${id} - ${id} – ${titulo}
 Dado que o usuário esteja no ambiente de homologação
 Quando tentar acessar o sistema
 Então o sistema deve estar disponível
@@ -141,6 +100,7 @@ Então o sistema deve estar disponível
 
   return map[tipo]?.trim() || "";
 }
+
 // 3. FUNÇÃO PRINCIPAL
 function gerarCasosDeTeste(textoBruto) {
   if (!textoBruto.trim()) return "";
@@ -166,18 +126,9 @@ function gerarCasosDeTeste(textoBruto) {
 }
 
 // 4. BOTÃO GERAR
-// =========================
 if (btnGerarCenarios) {
   btnGerarCenarios.addEventListener("click", () => {
-    const texto = inputRequisito.value;
-
-    if (!texto.trim()) {
-      alert("Informe ao menos um requisito.");
-      return;
-    }
-
-    const resultado = gerarCasosDeTeste(texto);
-    outputCenarios.value = resultado;
+    outputCenarios.value = gerarCasosDeTeste(inputRequisito.value);
   });
 }
 
@@ -944,6 +895,7 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
 
 
 
