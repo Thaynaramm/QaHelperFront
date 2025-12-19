@@ -62,7 +62,10 @@ function classificarCriterio(criterio) {
 function resumirTitulo(texto) {
   return texto.length > 60 ? texto.slice(0, 60) + "..." : texto;
 }
-  
+
+function gerarCenario(tipo, descricao, id) {
+  const titulo = resumirTitulo(descricao);
+
   const map = {
     SUCESSO: `
 Cenário: CT${id} – ${titulo}
@@ -98,7 +101,6 @@ Então o sistema deve estar disponível
 
   return map[tipo]?.trim() || "";
 }
-
 // 3. FUNÇÃO PRINCIPAL
 function gerarCasosDeTeste(textoBruto) {
   if (!textoBruto.trim()) return "";
@@ -883,6 +885,7 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
 
 
 
