@@ -2,16 +2,22 @@
 // QA HELPER 
 // =========================
 
-// --------- THEME TOGGLE ---------
-function aplicarTema(tema) {
-  document.body.classList.remove("theme-light", "theme-dark");
-  document.body.classList.add(tema);
-  localStorage.setItem("qahelper_theme", tema);
+// --------- INIT THEME ---------
+const themeToggleBtn = document.getElementById("themeToggleBtn");
 
-  const themeLabel = document.getElementById("themeLabel");
-  if (themeLabel) {
-    themeLabel.textContent = tema === "theme-light" ? "Light" : "Dark";
-  }
+// aplica o tema salvo ao carregar
+const temaSalvo = localStorage.getItem("qahelper_theme") || "theme-light";
+aplicarTema(temaSalvo);
+
+// alternar tema no clique
+if (themeToggleBtn) {
+  themeToggleBtn.addEventListener("click", () => {
+    const atual = document.body.classList.contains("theme-light")
+      ? "theme-light"
+      : "theme-dark";
+
+    aplicarTema(atual === "theme-light" ? "theme-dark" : "theme-light");
+  });
 }
 
 // =========================
@@ -857,4 +863,5 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
 
