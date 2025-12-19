@@ -130,9 +130,18 @@ function gerarCasosDeTeste(textoBruto) {
 }
 
 // 4. BOTÃO GERAR
+// =========================
 if (btnGerarCenarios) {
   btnGerarCenarios.addEventListener("click", () => {
-    alert("CLIQUE FUNCIONOU");
+    const texto = inputRequisito.value;
+
+    if (!texto.trim()) {
+      alert("Informe ao menos um requisito.");
+      return;
+    }
+
+    const resultado = gerarCasosDeTeste(texto);
+    outputCenarios.value = resultado;
   });
 }
 
@@ -889,6 +898,7 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
 
 
 
