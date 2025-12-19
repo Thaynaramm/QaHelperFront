@@ -63,9 +63,11 @@ function classificarCriterio(criterio) {
 function resumirTitulo(texto) {
   if (!texto) return "";
 
-  return texto.length > 50
-    ? texto.substring(0, 50) + "..."
-    : texto;
+  return texto
+    .replace(/^como\s+.*?,\s*/i, "")
+    .replace(/\.$/, "")
+    .trim()
+    .slice(0, 60);
 }
 // 2. TEMPLATE
 function gerarCenario(tipo, descricao, id) {
@@ -900,6 +902,7 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
 
 
 
