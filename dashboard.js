@@ -13,6 +13,25 @@ function aplicarTema(tema) {
     themeLabel.textContent = tema === "theme-light" ? "Light" : "Dark";
   }
 }
+// ===============================
+// ELEMENTOS
+// ===============================
+const btnGerarCenarios = document.getElementById("btnGerarCenarios");
+const btnGerarPlanejamento = document.getElementById("btnGerarPlanejamento");
+const inputRequisito = document.getElementById("inputRequisito");
+const outputCenarios = document.getElementById("outputCenarios");
+
+// ===============================
+// VALIDAÇÃO BÁSICA
+// ===============================
+function validarRequisito(texto) {
+  if (!texto || !texto.trim()) {
+    alert("Informe ao menos um requisito.");
+    return false;
+  }
+  return true;
+}
+
 // =========================
 // GERADOR DE CENÁRIOS
 // =========================
@@ -854,6 +873,7 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
 
 
 
