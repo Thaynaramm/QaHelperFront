@@ -25,12 +25,14 @@ if (themeToggleBtn) {
   });
 }
 function resumirTitulo(texto) {
-  return texto
+  const resumo = texto
     .replace(/^como .*?, quero/i, "")
     .replace(/^como .*? quero/i, "")
     .replace(/para .*$/i, "")
     .trim()
-    .substring(0, 60) || "Cenário automático";
+    .substring(0, 60);
+
+  return resumo || "Cenário automático";
 }
 
 // =========================
@@ -892,6 +894,7 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
 
 
 
