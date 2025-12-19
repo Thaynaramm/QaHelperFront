@@ -3,33 +3,16 @@
 // =========================
 
 // --------- THEME TOGGLE ---------
-const themeToggleBtn = document.getElementById("themeToggleBtn");
-const themeLabelSpan = document.getElementById("themeLabel");
-
-function aplicarTema(theme) {
+function aplicarTema(tema) {
   document.body.classList.remove("theme-light", "theme-dark");
-  document.body.classList.add(theme);
+  document.body.classList.add(tema);
+  localStorage.setItem("qahelper_theme", tema);
 
-  if (themeLabelSpan) {
-    themeLabelSpan.textContent = theme === "theme-light" ? "Light" : "Dark";
+  const themeLabel = document.getElementById("themeLabel");
+  if (themeLabel) {
+    themeLabel.textContent = tema === "theme-light" ? "Light" : "Dark";
   }
-
-  localStorage.setItem("qahelper_theme", theme);
 }
-
-const temaSalvo = localStorage.getItem("qahelper_theme") || "theme-light";
-aplicarTema(temaSalvo);
-
-if (themeToggleBtn) {
-  themeToggleBtn.addEventListener("click", () => {
-    const atual = document.body.classList.contains("theme-light")
-      ? "theme-light"
-      : "theme-dark";
-
-    aplicarTema(atual === "theme-light" ? "theme-dark" : "theme-light");
-  });
-}
-
 
 // =========================
 // GERADOR DE CENÁRIOS
@@ -874,3 +857,4 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
