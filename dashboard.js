@@ -34,8 +34,8 @@ if (themeToggleBtn) {
 // =========================
 const btnGerarCenarios = document.getElementById("btnGerarCenarios");
 const btnLimparGerados = document.getElementById("btnLimparGerados");
-const btnMoverParaEdicao = document.getElementById("btnMoverParaEdicao");
 const btnGerarXlsx = document.getElementById("btnGerarXlsx");
+const btnMoverParaEdicao = document.getElementById("btnMoverParaEdicao");
 const btnLimparEditor = document.getElementById("btnLimparEditor");
 const inputRequisito = document.getElementById("inputRequisito");
 const outputCenarios = document.getElementById("outputCenarios");
@@ -900,6 +900,7 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
 
 
 
