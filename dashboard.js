@@ -274,19 +274,16 @@ function adicionarAoHistorico(tipo, nomeArquivo, blob) {
 // =========================
 if (btnGerarXlsx) {
   btnGerarXlsx.addEventListener("click", () => {
-    // código
-  });
-}
 
-  // Captura o texto do editor
-  let textoBruto = editorCenarios.innerText.trim()
-    ? editorCenarios.innerText
-    : outputCenarios.value;
+    // Captura o texto do editor ou dos cenários gerados
+    const textoBruto = editorCenarios.innerText.trim()
+      ? editorCenarios.innerText
+      : outputCenarios.value;
 
-  if (!textoBruto.trim()) {
-    alert("Nenhum cenário encontrado.");
-    return;
-  }
+    if (!textoBruto.trim()) {
+      alert("Nenhum cenário encontrado.");
+      return;
+    }
 
   // -----------------------------------------
   // 1) SEPARAR CENÁRIOS — CADA "Cenário:" INICIA UM BLOCO
@@ -492,8 +489,6 @@ if (btnGerarXlsx) {
 // GERAR ARQUIVO DOCX
 // =========================
 
-const btnGerarDocx = document.getElementById("btnGerarDocx");
-
 if (btnGerarDocx) {
   btnGerarDocx.addEventListener("click", async () => {
 
@@ -503,7 +498,7 @@ if (btnGerarDocx) {
     editorCenarios.childNodes.forEach(node => {
 
       // ============================
-      // 1. NÓ DE TEXTO / <div> / <p>
+      // 1. TEXTO / <div> / <p>
       // ============================
       if (node.nodeType === Node.ELEMENT_NODE) {
 
@@ -899,6 +894,7 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
 
 
 
