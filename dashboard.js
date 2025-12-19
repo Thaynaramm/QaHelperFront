@@ -2,6 +2,9 @@
 // QA HELPER - DASHBOARD
 // =========================
 
+const docx = window.docx;
+const saveAs = window.saveAs;
+
 // =========================
 // TEMA LIGHT / DARK
 // =========================
@@ -268,7 +271,11 @@ function adicionarAoHistorico(tipo, nomeArquivo, blob) {
 // =========================
 // EXPORTAR XLSX
 // =========================
-btnGerarXlsx.addEventListener("click", () => {
+if (btnGerarXlsx) {
+  btnGerarXlsx.addEventListener("click", () => {
+    // código
+  });
+}
 
   // Captura o texto do editor
   let textoBruto = editorCenarios.innerText.trim()
@@ -891,5 +898,6 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
 
 
