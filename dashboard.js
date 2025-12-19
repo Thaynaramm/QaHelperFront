@@ -41,6 +41,7 @@ const inputRequisito = document.getElementById("inputRequisito");
 const outputCenarios = document.getElementById("outputCenarios");
 const editorCenarios = document.getElementById("editorCenarios");
 
+
 // =========================
 // GERADOR DE CENÁRIOS
 // =========================
@@ -902,6 +903,7 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
 
 
 
