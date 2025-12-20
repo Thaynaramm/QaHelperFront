@@ -30,6 +30,19 @@ const editorCenarios = document.getElementById("editorCenarios");
 
 const themeToggleBtn = document.getElementById("themeToggleBtn");
 
+
+// ===============================
+// VÍNCULO DO BOTÃO DE TEMA
+// ===============================
+if (themeToggleBtn) {
+  themeToggleBtn.addEventListener("click", () => {
+    const temaAtual = document.body.classList.contains("theme-dark")
+      ? "theme-light"
+      : "theme-dark";
+
+    aplicarTema(temaAtual);
+  });
+}
 // ===============================
 // VÍNCULO DO BOTÃO PLANEJAMENTO
 // ===============================
@@ -897,6 +910,7 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
 
 
 
