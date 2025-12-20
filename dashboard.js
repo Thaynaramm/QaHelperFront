@@ -18,9 +18,24 @@ function aplicarTema(tema) {
 // ===============================
 const btnGerarCenarios = document.getElementById("btnGerarCenarios");
 const btnGerarPlanejamento = document.getElementById("btnGerarPlanejamento");
+const btnGerarXlsx = document.getElementById("btnGerarXlsx");
+
+const btnLimparGerados = document.getElementById("btnLimparGerados");
+const btnMoverParaEdicao = document.getElementById("btnMoverParaEdicao");
+const btnLimparEditor = document.getElementById("btnLimparEditor");
+
 const inputRequisito = document.getElementById("inputRequisito");
 const outputCenarios = document.getElementById("outputCenarios");
+const editorCenarios = document.getElementById("editorCenarios");
 
+// ===============================
+// VÍNCULO DO BOTÃO PLANEJAMENTO
+// ===============================
+if (btnGerarPlanejamento && btnGerarXlsx) {
+  btnGerarPlanejamento.addEventListener("click", () => {
+    btnGerarXlsx.click();
+  });
+}
 // ===============================
 // VALIDAÇÃO BÁSICA
 // ===============================
@@ -31,7 +46,13 @@ function validarRequisito(texto) {
   }
   return true;
 }
-
+// FUNÇÃO AUXILIAR – RESUMO DO TÍTULO
+// ===============================
+function resumirTitulo(texto) {
+  return texto.length > 50
+    ? texto.substring(0, 50) + "..."
+    : texto;
+}
 // =========================
 // GERADOR DE CENÁRIOS
 // =========================
@@ -251,6 +272,7 @@ function adicionarAoHistorico(tipo, nomeArquivo, blob) {
 // EXPORTAR XLSX
 // =========================
 btnGerarXlsx.addEventListener("click", () => {
+  if (!validarRequisito(inputRequisito.value)) return;
 
   // Captura o texto do editor
   let textoBruto = editorCenarios.innerText.trim()
@@ -873,6 +895,7 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
 
 
 
