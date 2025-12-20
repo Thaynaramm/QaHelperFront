@@ -28,6 +28,8 @@ const inputRequisito = document.getElementById("inputRequisito");
 const outputCenarios = document.getElementById("outputCenarios");
 const editorCenarios = document.getElementById("editorCenarios");
 
+const themeToggleBtn = document.getElementById("themeToggleBtn");
+
 // ===============================
 // VÍNCULO DO BOTÃO PLANEJAMENTO
 // ===============================
@@ -895,6 +897,7 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
 
 
 
