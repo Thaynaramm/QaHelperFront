@@ -90,37 +90,42 @@ function gerarCenario(tipo, descricao, id) {
   const titulo = resumirTitulo(descricao);
   
   const map = {
-    SUCESSO: `
+  SUCESSO: `
 Cenário: CT${id} – ${titulo}
 Dado que o usuário informe e-mail e senha válidos
 Quando solicitar o login
 Então o sistema deve permitir o acesso
 `,
-    ERRO_NEGOCIO: `
-Cenário: CT$${id} – ${titulo}
+
+  ERRO_NEGOCIO: `
+Cenário: CT${id} – ${titulo}
 Dado que o usuário informe senha inválida
 Quando tentar autenticar
 Então o sistema deve negar o acesso e exibir mensagem de erro
 `,
-    VALIDACAO: `
-Cenário: CT$${id} – ${titulo}
+
+  VALIDACAO: `
+Cenário: CT${id} – ${titulo}
 Dado que o usuário informe campos obrigatórios vazios
 Quando tentar autenticar
 Então o sistema deve impedir o envio do formulário
 `,
-    NAO_FUNCIONAL: `
-Cenário: CT${id} - ${id} – ${titulo}
+
+  NAO_FUNCIONAL: `
+Cenário: CT${id} – ${titulo}
 Dado que o usuário informe e-mail e senha válidos
 Quando solicitar o login
 Então o tempo de resposta não deve ultrapassar 3 segundos
 `,
-    AMBIENTE: `
-Cenário: CT${id} - ${id} – ${titulo}
+
+  AMBIENTE: `
+Cenário: CT${id} – ${titulo}
 Dado que o usuário esteja no ambiente de homologação
 Quando tentar acessar o sistema
 Então o sistema deve estar disponível
 `
-  };
+};
+
 
   return map[tipo]?.trim() || "";
 }
@@ -910,6 +915,7 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
 
 
 
