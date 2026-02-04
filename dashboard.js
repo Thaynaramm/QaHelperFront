@@ -134,24 +134,39 @@ Então o sistema deve estar disponível
 function gerarCasosDeTeste(textoBruto) {
   if (!textoBruto.trim()) return "";
 
-  // quebra linhas → array
-  const criterios = textoBruto
+  const requisitos = textoBruto
     .split("\n")
     .map(l => l.trim())
     .filter(l => l.length > 0);
 
   let id = 1;
-  const saida = [];
+  const cenarios = [];
 
-  criterios.forEach(c => {
-    const tipo = classificarCriterio(c);
-    if (!tipo) return;
+  requisitos.forEach(req => {
+    const titulo = resumirTitulo(req);
 
-    saida.push(gerarCenario(tipo, c, id));
+    // -------- CAMINHO FELIZ --------
+    cenarios.push(`
+Cenário: CT${id} – ${titulo} (Caminho Feliz)
+Dado que o sistema esteja disponível
+Quando o usuário executar "${req}" com dados válidos
+Então o sistema deve concluir a operação com sucesso
+`.trim());
+
+    id++;
+
+    // -------- CAMINHO TRISTE --------
+    cenarios.push(`
+Cenário: CT${id} – ${titulo} (Caminho Triste)
+Dado que o sistema esteja disponível
+Quando o usuário executar "${req}" com dados inválidos ou inconsistentes
+Então o sistema deve impedir a operação e exibir mensagem de erro
+`.trim());
+
     id++;
   });
 
-  return saida.join("\n\n");
+  return cenarios.join("\n\n");
 }
 
 // 4. BOTÃO GERAR
@@ -915,6 +930,7 @@ window.addEventListener("paste", (e) => {
 
   img.src = URL.createObjectURL(file);
 });
+
 
 
 
